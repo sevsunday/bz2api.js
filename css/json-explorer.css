@@ -233,6 +233,7 @@
 .json-summary {
   color: var(--text-muted);
   font-size: 0.9em;
+  user-select: none; /* Exclude from copy/paste - not real JSON */
 }
 
 .json-summary .type {
@@ -258,6 +259,7 @@
 /* Closing bracket */
 .json-bracket {
   color: var(--text-muted);
+  user-select: none; /* Exclude from copy/paste */
 }
 
 /* Tooltip icon */
@@ -274,6 +276,7 @@
   font-size: 0.75em;
   flex-shrink: 0;
   transition: opacity 0.15s;
+  user-select: none; /* Exclude from copy/paste */
 }
 
 .json-tooltip-icon:hover {
