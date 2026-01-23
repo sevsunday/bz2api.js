@@ -281,13 +281,41 @@
       word-break: break-all;
     }
     
+    .json-view-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
     .json-view-label {
       font-size: 0.7em;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 8px;
       font-weight: 600;
+    }
+    
+    .copy-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 3px 8px;
+      font-size: 0.7em;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .copy-btn:hover {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .copy-btn.copied {
+      background: rgba(63, 185, 80, 0.2);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
     }
     
     /* Session Cards */
@@ -674,13 +702,19 @@
       </div>
       <div class="json-content" id="jsonContent">
         <div class="json-view" id="parsedView">
-          <div class="json-view-label">Parsed Output</div>
+          <div class="json-view-header">
+            <div class="json-view-label">Parsed Output</div>
+            <button class="copy-btn" onclick="copyJson('parsed')">Copy</button>
+          </div>
           <pre>No data loaded</pre>
         </div>
         <!-- Horizontal Splitter (visible only in "both" mode) -->
         <div class="splitter-h" id="splitterH" style="display: none;"></div>
         <div class="json-view" id="rawView" style="display: none;">
-          <div class="json-view-label">Raw API Response</div>
+          <div class="json-view-header">
+            <div class="json-view-label">Raw API Response</div>
+            <button class="copy-btn" onclick="copyJson('raw')">Copy</button>
+          </div>
           <pre>No data loaded</pre>
         </div>
       </div>
@@ -798,6 +832,25 @@
       status.textContent = message;
       status.className = 'status ' + type;
       status.style.display = 'inline-block';
+    }
+    
+    function copyJson(type) {
+      const view = type === 'parsed' ? document.getElementById('parsedView') : document.getElementById('rawView');
+      const pre = view.querySelector('pre');
+      const btn = view.querySelector('.copy-btn');
+      
+      navigator.clipboard.writeText(pre.textContent).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        btn.textContent = 'Error';
+        setTimeout(() => btn.textContent = 'Copy', 1500);
+      });
     }
     
     function toggleJsonPanel() {
