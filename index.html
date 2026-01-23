@@ -681,7 +681,7 @@
     let jsonExplorer = null;
     let schemaData = null;
     let lastFetchResult = null; // Store last fetch result for session selection
-    let selectedSessionIndex = null; // Currently selected session index
+    let selectedSessionId = null; // Currently selected session ID (persists across refreshes)
     
     // ============ Initialize JSON Explorer ============
     async function initJsonExplorer() {
@@ -995,21 +995,26 @@
       
       // Update JSON explorer based on selection state
       if (isNowExpanded && lastFetchResult) {
-        // Show only this session's data
-        selectedSessionIndex = sessionIndex;
+        // Show only this session's data - track by ID for persistence
+        const session = lastFetchResult.sessions[sessionIndex];
+        selectedSessionId = session ? session.id : null;
         showSessionInExplorer(sessionIndex);
       } else {
         // Collapsed - show all data
-        selectedSessionIndex = null;
+        selectedSessionId = null;
         showAllDataInExplorer();
       }
     }
     
-    function showSessionInExplorer(index) {
+    function showSessionInExplorer(index, preserveScroll = false) {
       if (!jsonExplorer || !lastFetchResult) return;
       
       const session = lastFetchResult.sessions[index];
       if (!session) return;
+      
+      // Save scroll position if preserving
+      const treeContainer = document.querySelector('.json-explorer-tree');
+      const scrollTop = preserveScroll && treeContainer ? treeContainer.scrollTop : 0;
       
       // Parsed view (clean, no _raw)
       const { _raw, ...cleanSession } = session;
@@ -1018,10 +1023,21 @@
       const rawSession = lastFetchResult.rawResponse?.GET?.[index] || null;
       
       jsonExplorer.setData(cleanSession, rawSession);
+      
+      // Restore scroll position
+      if (preserveScroll && treeContainer) {
+        requestAnimationFrame(() => {
+          treeContainer.scrollTop = scrollTop;
+        });
+      }
     }
     
-    function showAllDataInExplorer() {
+    function showAllDataInExplorer(preserveScroll = false) {
       if (!jsonExplorer || !lastFetchResult) return;
+      
+      // Save scroll position if preserving
+      const treeContainer = document.querySelector('.json-explorer-tree');
+      const scrollTop = preserveScroll && treeContainer ? treeContainer.scrollTop : 0;
       
       // Show full data
       const cleanedSessions = lastFetchResult.sessions.map(session => {
@@ -1036,6 +1052,13 @@
       };
       
       jsonExplorer.setData(parsedData, lastFetchResult.rawResponse);
+      
+      // Restore scroll position
+      if (preserveScroll && treeContainer) {
+        requestAnimationFrame(() => {
+          treeContainer.scrollTop = scrollTop;
+        });
+      }
     }
     
     function updateStats(sessions) {
@@ -1077,21 +1100,45 @@
         
         // Store result for session selection feature
         lastFetchResult = result;
-        selectedSessionIndex = null; // Reset selection on refresh
         
-        // Update sessions
+        // Update sessions (preserve scroll position)
         const container = document.getElementById('sessionsContainer');
+        const sessionsScrollTop = container.scrollTop;
+        
         if (result.sessions.length === 0) {
           container.innerHTML = '<div class="empty-state">No active sessions found.</div>';
+          selectedSessionId = null;
         } else {
           container.innerHTML = result.sessions.map((session, index) => renderSession(session, index)).join('');
+          
+          // Restore sessions panel scroll position
+          requestAnimationFrame(() => {
+            container.scrollTop = sessionsScrollTop;
+          });
+          
+          // Restore expanded state if we had a selected session
+          if (selectedSessionId) {
+            const selectedIndex = result.sessions.findIndex(s => s.id === selectedSessionId);
+            if (selectedIndex !== -1) {
+              // Re-expand the previously selected session
+              const card = container.querySelector(`[data-session-index="${selectedIndex}"]`);
+              if (card) {
+                card.classList.add('expanded');
+                showSessionInExplorer(selectedIndex, true); // Preserve scroll
+              }
+            } else {
+              // Session no longer exists, clear selection
+              selectedSessionId = null;
+              showAllDataInExplorer(true); // Preserve scroll
+            }
+          } else {
+            // No selection, show all data
+            showAllDataInExplorer(true); // Preserve scroll
+          }
         }
         
         // Update stats
         updateStats(result.sessions);
-        
-        // Update JSON Explorer (show all data)
-        updateJsonExplorer(result);
         
         setStatus(`${new Date().toLocaleTimeString()}`, 'success');
         
