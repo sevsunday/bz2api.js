@@ -68,6 +68,9 @@ class JsonExplorer {
     // Use mouseover/mouseout for better event delegation
     this.container.addEventListener('mouseover', (e) => this.handleTooltipHover(e));
     this.container.addEventListener('mouseout', (e) => this.handleTooltipLeave(e));
+    
+    // Intercept copy events for clean JSON output
+    this.treeContainer.addEventListener('copy', (e) => this.handleCopy(e));
   }
   
   setData(parsedData, rawData = null) {
@@ -536,6 +539,246 @@ class JsonExplorer {
       btn.textContent = 'Error';
       setTimeout(() => btn.textContent = 'Copy', 1500);
     });
+  }
+  
+  /**
+   * Handle copy event for manual selection - outputs clean JSON
+   */
+  handleCopy(e) {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+    
+    const data = this.getCurrentData();
+    if (!data) return;
+    
+    // Get all selected nodes
+    const selectedPaths = this.getSelectedPaths(selection);
+    if (selectedPaths.length === 0) return;
+    
+    // Build clean JSON from selected paths
+    const result = this.buildJsonFromPaths(data, selectedPaths);
+    if (result === null || result === undefined) return;
+    
+    // Format the result
+    let jsonOutput;
+    if (typeof result === 'object') {
+      jsonOutput = JSON.stringify(result, null, 2);
+    } else {
+      // Single primitive value
+      jsonOutput = JSON.stringify(result);
+    }
+    
+    // Replace clipboard contents with clean JSON
+    e.preventDefault();
+    e.clipboardData.setData('text/plain', jsonOutput);
+  }
+  
+  /**
+   * Get paths of all nodes that intersect with the selection
+   */
+  getSelectedPaths(selection) {
+    const paths = [];
+    const range = selection.getRangeAt(0);
+    
+    // Get all json-node elements
+    const allNodes = this.treeContainer.querySelectorAll('.json-node');
+    
+    for (const node of allNodes) {
+      // Check if this node intersects with selection
+      if (this.nodeIntersectsRange(node, range)) {
+        const path = node.dataset.path;
+        if (path !== undefined) {
+          // Only add if not a child of already-added path (avoid duplicates)
+          const isChild = paths.some(p => 
+            path.startsWith(p + '.') || path.startsWith(p + '[')
+          );
+          if (!isChild) {
+            // Remove any children paths if we're adding a parent
+            const filteredPaths = paths.filter(p => 
+              !p.startsWith(path + '.') && !p.startsWith(path + '[')
+            );
+            filteredPaths.push(path);
+            paths.length = 0;
+            paths.push(...filteredPaths);
+          }
+        }
+      }
+    }
+    
+    return paths;
+  }
+  
+  /**
+   * Check if a DOM node intersects with a Range
+   */
+  nodeIntersectsRange(node, range) {
+    const nodeRange = document.createRange();
+    nodeRange.selectNode(node);
+    
+    // Check if ranges overlap
+    const startToStart = range.compareBoundaryPoints(Range.START_TO_START, nodeRange);
+    const startToEnd = range.compareBoundaryPoints(Range.START_TO_END, nodeRange);
+    const endToStart = range.compareBoundaryPoints(Range.END_TO_START, nodeRange);
+    const endToEnd = range.compareBoundaryPoints(Range.END_TO_END, nodeRange);
+    
+    // They overlap if selection start is before node end AND selection end is after node start
+    return startToEnd >= 0 && endToStart <= 0;
+  }
+  
+  /**
+   * Extract data from paths and build a JSON structure
+   */
+  buildJsonFromPaths(data, paths) {
+    if (paths.length === 0) return null;
+    
+    // If only one path, return just that value
+    if (paths.length === 1) {
+      const path = paths[0];
+      if (path === '' || path === 'root') {
+        return data;
+      }
+      return this.getValueAtPath(data, path);
+    }
+    
+    // Multiple paths - find common ancestor and build partial object
+    const commonAncestor = this.findCommonAncestor(paths);
+    
+    if (commonAncestor === '' || commonAncestor === 'root') {
+      // Build object with selected top-level keys
+      const result = {};
+      for (const path of paths) {
+        const key = path.split('.')[0].split('[')[0];
+        result[key] = this.getValueAtPath(data, path);
+      }
+      return result;
+    }
+    
+    // Get the ancestor value and filter to only selected children
+    const ancestorValue = this.getValueAtPath(data, commonAncestor);
+    if (typeof ancestorValue !== 'object' || ancestorValue === null) {
+      return ancestorValue;
+    }
+    
+    // Build a partial copy with only selected paths
+    if (Array.isArray(ancestorValue)) {
+      const result = [];
+      for (const path of paths) {
+        const relativePath = path.substring(commonAncestor.length);
+        const match = relativePath.match(/^\[(\d+)\]/);
+        if (match) {
+          const index = parseInt(match[1]);
+          result.push(ancestorValue[index]);
+        }
+      }
+      return result;
+    } else {
+      const result = {};
+      for (const path of paths) {
+        const relativePath = path.substring(commonAncestor.length + 1); // +1 for the dot
+        const key = relativePath.split('.')[0].split('[')[0];
+        if (key && ancestorValue.hasOwnProperty(key)) {
+          result[key] = ancestorValue[key];
+        }
+      }
+      return result;
+    }
+  }
+  
+  /**
+   * Get value at a path like "sessions[0].name" or "players.0.team"
+   */
+  getValueAtPath(data, path) {
+    if (!path || path === '' || path === 'root') return data;
+    
+    // Parse path into segments
+    const segments = [];
+    let current = '';
+    let i = 0;
+    
+    while (i < path.length) {
+      if (path[i] === '.') {
+        if (current) segments.push(current);
+        current = '';
+        i++;
+      } else if (path[i] === '[') {
+        if (current) segments.push(current);
+        current = '';
+        i++;
+        // Read until ]
+        while (i < path.length && path[i] !== ']') {
+          current += path[i];
+          i++;
+        }
+        segments.push(parseInt(current));
+        current = '';
+        i++; // skip ]
+      } else {
+        current += path[i];
+        i++;
+      }
+    }
+    if (current) segments.push(current);
+    
+    // Navigate to value
+    let value = data;
+    for (const segment of segments) {
+      if (value === null || value === undefined) return undefined;
+      value = value[segment];
+    }
+    
+    return value;
+  }
+  
+  /**
+   * Find the common ancestor path of multiple paths
+   */
+  findCommonAncestor(paths) {
+    if (paths.length === 0) return '';
+    if (paths.length === 1) return paths[0];
+    
+    // Split all paths into segments
+    const splitPaths = paths.map(p => {
+      const segments = [];
+      let current = '';
+      for (let i = 0; i < p.length; i++) {
+        if (p[i] === '.' || p[i] === '[') {
+          if (current) segments.push(current);
+          current = '';
+          if (p[i] === '[') {
+            i++;
+            while (i < p.length && p[i] !== ']') {
+              current += p[i];
+              i++;
+            }
+            segments.push('[' + current + ']');
+            current = '';
+          }
+        } else {
+          current += p[i];
+        }
+      }
+      if (current) segments.push(current);
+      return segments;
+    });
+    
+    // Find common prefix
+    const common = [];
+    const minLen = Math.min(...splitPaths.map(p => p.length));
+    
+    for (let i = 0; i < minLen; i++) {
+      const segment = splitPaths[0][i];
+      if (splitPaths.every(p => p[i] === segment)) {
+        common.push(segment);
+      } else {
+        break;
+      }
+    }
+    
+    // Reconstruct path
+    return common.map((s, i) => {
+      if (s.startsWith('[')) return s;
+      return (i > 0 ? '.' : '') + s;
+    }).join('');
   }
 }
 
