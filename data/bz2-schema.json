@@ -32,6 +32,7 @@
   "sessions.*.players.*.steamId": "Steam 64-bit ID if player is on Steam (null otherwise)",
   "sessions.*.players.*.gogId": "GOG Galaxy ID if player is on GOG (null otherwise)",
   "sessions.*.players.*.platform": "Platform identifier: 'Steam' or 'GOG'",
+  "sessions.*.players.*.profileUrl": "Link to player's Steam or GOG profile page",
   "sessions.*.players.*.kills": "Player's kill count (null if not in-game or hidden)",
   "sessions.*.players.*.deaths": "Player's death count (null if not in-game or hidden)",
   "sessions.*.players.*.score": "Player's total score (null if not in-game or hidden)",
@@ -48,7 +49,11 @@
   "sessions.*.commanders": "Array of commander player names (quick reference for STRAT/MPI)",
   "sessions.*.hiddenPlayers": "Array of hidden player names (spectators or glitched)",
   
-  "sessions.*.mods": "Array of Steam Workshop mod IDs required for this session",
+  "sessions.*.mods": "Array of mod objects required for this session",
+  "sessions.*.mods.*": "Individual mod object",
+  "sessions.*.mods.*.id": "Steam Workshop item ID (or '0' for stock game)",
+  "sessions.*.mods.*.name": "Mod name (only 'Stock' for ID 0, null otherwise - requires API enrichment)",
+  "sessions.*.mods.*.workshopUrl": "Link to Steam Workshop page for this mod (null for stock)",
   "sessions.*.primaryMod": "Primary mod ID (first in the mod list)",
   "sessions.*.modHash": "Short hash identifying the mod combination",
   "sessions.*.isStock": "True if no mods are required (vanilla game)",
@@ -76,5 +81,19 @@
   "sessions.*.gameTimeMinutes": "Time elapsed since session was created (capped at 255)",
   "sessions.*.timeElapsedMinutes": "Formatted time elapsed (shows '>255' if maxed out)",
   "sessions.*.timeLimitMinutes": "Time limit for the match if set (null if unlimited)",
-  "sessions.*.killLimit": "Kill/score limit for the match if set (null if unlimited)"
+  "sessions.*.killLimit": "Kill/score limit for the match if set (null if unlimited)",
+  
+  "dataCache": "Consolidated cache of unique players and mods across all sessions",
+  "dataCache.players": "Map of player IDs to player metadata",
+  "dataCache.players.*": "Player metadata object",
+  "dataCache.players.*.id": "Player's platform ID (Steam or GOG)",
+  "dataCache.players.*.steamId": "Steam 64-bit ID (null if GOG player)",
+  "dataCache.players.*.gogId": "GOG Galaxy ID (null if Steam player)",
+  "dataCache.players.*.platform": "Platform identifier: 'Steam' or 'GOG'",
+  "dataCache.players.*.profileUrl": "Link to player's Steam or GOG profile page",
+  "dataCache.mods": "Map of mod IDs to mod metadata",
+  "dataCache.mods.*": "Mod metadata object",
+  "dataCache.mods.*.id": "Steam Workshop item ID (or '0' for stock)",
+  "dataCache.mods.*.name": "Mod name (only 'Stock' for ID 0, null otherwise)",
+  "dataCache.mods.*.workshopUrl": "Link to Steam Workshop page (null for stock)"
 }

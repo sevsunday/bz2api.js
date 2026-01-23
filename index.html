@@ -455,6 +455,54 @@
       color: var(--text-muted);
     }
     
+    /* Profile/Link buttons */
+    .profile-btn, .mod-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.7em;
+      text-decoration: none;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+    
+    .profile-btn {
+      background: rgba(88, 166, 255, 0.1);
+      color: var(--accent-blue);
+      border-color: rgba(88, 166, 255, 0.2);
+    }
+    
+    .profile-btn:hover {
+      background: rgba(88, 166, 255, 0.2);
+      border-color: rgba(88, 166, 255, 0.4);
+    }
+    
+    .mod-link {
+      background: rgba(188, 140, 255, 0.1);
+      color: var(--accent-purple);
+      border-color: rgba(188, 140, 255, 0.2);
+    }
+    
+    .mod-link:hover {
+      background: rgba(188, 140, 255, 0.2);
+      border-color: rgba(188, 140, 255, 0.4);
+    }
+    
+    .mod-link.stock {
+      background: rgba(110, 118, 129, 0.1);
+      color: var(--text-muted);
+      border-color: rgba(110, 118, 129, 0.2);
+      cursor: default;
+    }
+    
+    .mods-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    
     /* Detail Grid */
     .detail-grid {
       display: grid;
@@ -779,7 +827,10 @@
       if (player.isHidden) badges.push('<span class="hidden-badge">HIDDEN</span>');
       
       const teamBadge = player.team ? `<span class="player-team">T${player.team}</span>` : '';
-      const platform = player.platform ? `<span class="player-platform">${player.platform}</span>` : '';
+      
+      // Profile link button
+      const profileBtn = player.profileUrl ? 
+        `<a href="${player.profileUrl}" class="profile-btn" target="_blank" onclick="event.stopPropagation()" title="View ${player.platform} Profile">👤</a>` : '';
       
       const statsHtml = showStats ? `
         <div class="player-stats">
@@ -792,11 +843,27 @@
       return `
         <div class="player">
           <span class="player-name">${escapeHtml(player.name)} ${badges.join('')}</span>
+          ${profileBtn}
           ${statsHtml}
           ${teamBadge}
-          ${platform}
         </div>
       `;
+    }
+    
+    function renderMods(mods, isStock) {
+      if (isStock || mods.length === 0) {
+        return '<span class="mod-link stock">Stock</span>';
+      }
+      
+      return mods.map(mod => {
+        if (mod.id === '0') {
+          return '<span class="mod-link stock">Stock</span>';
+        }
+        if (mod.workshopUrl) {
+          return `<a href="${mod.workshopUrl}" class="mod-link" target="_blank" onclick="event.stopPropagation()" title="View on Steam Workshop">${mod.name || mod.id}</a>`;
+        }
+        return `<span class="mod-link">${mod.name || mod.id}</span>`;
+      }).join('');
     }
     
     function renderSession(session, index) {
@@ -889,7 +956,9 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Mods</div>
-                <div class="detail-value">${session.isStock ? 'Stock' : session.mods.join(', ')}</div>
+                <div class="detail-value">
+                  <div class="mods-list">${renderMods(session.mods, session.isStock)}</div>
+                </div>
               </div>
             </div>
             

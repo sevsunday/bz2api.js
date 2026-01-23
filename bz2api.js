@@ -243,6 +243,40 @@ const BZ2API = (function() {
   }
 
   // ============================================================================
+  // PROFILE & WORKSHOP URL UTILITIES
+  // ============================================================================
+
+  /**
+   * Build a Steam profile URL from Steam ID
+   * @param {string} steamId - Steam 64-bit ID
+   * @returns {string} Steam profile URL
+   */
+  function buildSteamProfileUrl(steamId) {
+    if (!steamId) return null;
+    return `https://steamcommunity.com/profiles/${steamId}/`;
+  }
+
+  /**
+   * Build a GOG profile URL from GOG ID
+   * @param {string} gogId - GOG Galaxy user ID
+   * @returns {string} GOG profile URL
+   */
+  function buildGogProfileUrl(gogId) {
+    if (!gogId) return null;
+    return `https://www.gog.com/u/${gogId}`;
+  }
+
+  /**
+   * Build a Steam Workshop URL from mod ID
+   * @param {string} modId - Steam Workshop item ID
+   * @returns {string|null} Workshop URL or null for stock/invalid
+   */
+  function buildWorkshopUrl(modId) {
+    if (!modId || modId === '0') return null;
+    return `https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}`;
+  }
+
+  // ============================================================================
   // FIELD PARSERS
   // ============================================================================
 
@@ -433,7 +467,20 @@ const BZ2API = (function() {
    */
   function parseModIds(mm) {
     if (!mm) return [];
-    return mm.split(';').filter(id => id.length > 0 && id !== '0');
+    return mm.split(';').filter(id => id.length > 0);
+  }
+
+  /**
+   * Convert mod IDs to enriched mod objects with workshop URLs
+   * @param {string[]} modIds - Array of mod ID strings
+   * @returns {Object[]} Array of mod objects with id and workshopUrl
+   */
+  function enrichMods(modIds) {
+    return modIds.map(id => ({
+      id: id,
+      name: id === '0' ? 'Stock' : null, // Only stock has a known name
+      workshopUrl: buildWorkshopUrl(id)
+    }));
   }
 
   /**
@@ -469,6 +516,7 @@ const BZ2API = (function() {
       steamId: null,
       gogId: null,
       platform: null,
+      profileUrl: null,
       
       // Stats
       kills: rawPlayer.k ?? null,
@@ -487,7 +535,7 @@ const BZ2API = (function() {
       isHidden: false
     };
 
-    // Parse player ID to extract platform
+    // Parse player ID to extract platform and build profile URL
     if (rawPlayer.i) {
       const idPrefix = rawPlayer.i[0];
       const idValue = rawPlayer.i.substring(1);
@@ -495,9 +543,11 @@ const BZ2API = (function() {
       if (idPrefix === 'S') {
         player.steamId = idValue;
         player.platform = 'Steam';
+        player.profileUrl = buildSteamProfileUrl(idValue);
       } else if (idPrefix === 'G') {
         player.gogId = idValue;
         player.platform = 'GOG';
+        player.profileUrl = buildGogProfileUrl(idValue);
       }
     }
 
@@ -558,7 +608,8 @@ const BZ2API = (function() {
     // Parse other fields
     const natInfo = parseNATType(raw.t);
     const timeLimitInfo = parseTimeLimit(raw.gtm);
-    const mods = parseModIds(raw.mm);
+    const modIds = parseModIds(raw.mm);
+    const mods = enrichMods(modIds);
 
     // Decode GUID and convert to hex string (BigInt can't be JSON serialized)
     const guidBigInt = decodeRakNetGuid(raw.g);
@@ -599,9 +650,9 @@ const BZ2API = (function() {
       
       // Mods
       mods,
-      primaryMod: mods[0] || '0',
+      primaryMod: modIds[0] || '0',
       modHash: raw.d,
-      isStock: mods.length === 0 || (mods.length === 1 && mods[0] === '0'),
+      isStock: modIds.length === 0 || (modIds.length === 1 && modIds[0] === '0'),
       
       // Session state
       ...stateInfo,
@@ -686,6 +737,45 @@ const BZ2API = (function() {
   }
 
   /**
+   * Build a consolidated data cache from parsed sessions
+   * @param {Object[]} sessions - Array of parsed session objects
+   * @returns {Object} Data cache with unique players and mods
+   */
+  function buildDataCache(sessions) {
+    const players = {};
+    const mods = {};
+
+    for (const session of sessions) {
+      // Collect unique players
+      for (const player of session.players) {
+        const playerId = player.steamId || player.gogId;
+        if (playerId && !players[playerId]) {
+          players[playerId] = {
+            id: playerId,
+            steamId: player.steamId,
+            gogId: player.gogId,
+            platform: player.platform,
+            profileUrl: player.profileUrl
+          };
+        }
+      }
+
+      // Collect unique mods
+      for (const mod of session.mods) {
+        if (!mods[mod.id]) {
+          mods[mod.id] = {
+            id: mod.id,
+            name: mod.name,
+            workshopUrl: mod.workshopUrl
+          };
+        }
+      }
+    }
+
+    return { players, mods };
+  }
+
+  /**
    * Fetch and parse multiplayer sessions
    * @param {Object} options - Options object
    * @param {string} options.proxyUrl - Optional CORS proxy URL prefix
@@ -696,11 +786,13 @@ const BZ2API = (function() {
     const rawData = await fetchRaw(options);
     
     const sessions = (rawData.GET || []).map(parseSession);
+    const dataCache = buildDataCache(sessions);
     
     return {
       sessions,
       timestamp: new Date().toISOString(),
-      rawResponse: rawData
+      rawResponse: rawData,
+      dataCache
     };
   }
 
@@ -714,6 +806,7 @@ const BZ2API = (function() {
     fetchRaw,
     parseSession,
     parsePlayer,
+    buildDataCache,
     
     // Utilities
     decodeBase64Name,
@@ -723,6 +816,13 @@ const BZ2API = (function() {
     parseNATType,
     parseTimeLimit,
     parseModIds,
+    enrichMods,
+    
+    // URL builders
+    buildSteamProfileUrl,
+    buildGogProfileUrl,
+    buildWorkshopUrl,
+    buildSteamJoinUrl,
     
     // Constants
     ServerInfoMode,
