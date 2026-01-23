@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BZ2 Session Browser</title>
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --bg-hover: #30363d;
+      --accent-blue: #58a6ff;
+      --accent-orange: #d29922;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+      --accent-purple: #bc8cff;
+      --accent-cyan: #39c5cf;
+      --accent-yellow: #e3b341;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --border: #30363d;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    
+    h1 {
+      color: var(--accent-blue);
+      font-weight: 600;
+      margin: 0;
+      font-size: 1.25em;
+    }
+    
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    button {
+      background: var(--accent-blue);
+      color: var(--bg-primary);
+      border: none;
+      padding: 10px 20px;
+      font-family: inherit;
+      font-size: 0.9em;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    
+    button:hover { background: #79c0ff; }
+    button:disabled { background: var(--text-muted); cursor: not-allowed; }
+    
+    .status {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85em;
+    }
+    
+    .status.loading { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
+    .status.success { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
+    .status.error { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+    
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 0.85em;
+      cursor: pointer;
+    }
+    
+    .toggle-label input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent-blue);
+    }
+    
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 20px;
+    }
+    
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    
+    .panel {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .panel-header {
+      background: var(--bg-tertiary);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .panel-header h2 {
+      margin: 0;
+      font-size: 0.95em;
+      font-weight: 600;
+      color: var(--accent-orange);
+    }
+    
+    .panel-content {
+      padding: 12px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    /* Session Cards */
+    .session-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    
+    .session-card:hover { border-color: var(--accent-blue); }
+    .session-card:last-child { margin-bottom: 0; }
+    
+    .session-header {
+      padding: 14px 16px;
+      cursor: pointer;
+    }
+    
+    .session-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .session-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 1.05em;
+      word-break: break-word;
+    }
+    
+    .session-badges {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    
+    .badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .badge.state-pregame { background: rgba(210, 153, 34, 0.2); color: var(--accent-orange); }
+    .badge.state-ingame { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+    .badge.state-postgame { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
+    .badge.type-dm { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+    .badge.type-strat { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
+    .badge.locked { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+    .badge.password { background: rgba(227, 179, 65, 0.15); color: var(--accent-yellow); }
+    .badge.dedicated { background: rgba(57, 197, 207, 0.15); color: var(--accent-cyan); }
+    
+    .session-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85em;
+      color: var(--text-secondary);
+    }
+    
+    .session-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .session-meta .icon { opacity: 0.7; }
+    
+    .session-details {
+      display: none;
+      padding: 0 16px 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .session-card.expanded .session-details { display: block; }
+    
+    .expand-icon {
+      color: var(--text-muted);
+      transition: transform 0.2s;
+      font-size: 0.8em;
+    }
+    
+    .session-card.expanded .expand-icon { transform: rotate(90deg); }
+    
+    /* Player List */
+    .section-title {
+      font-size: 0.8em;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 16px 0 8px;
+      font-weight: 600;
+    }
+    
+    .player-list {
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .player {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 0.9em;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    
+    .player:last-child { border-bottom: none; }
+    
+    .player-name {
+      color: var(--accent-green);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .player-name .host-badge {
+      font-size: 0.7em;
+      padding: 2px 5px;
+      background: rgba(88, 166, 255, 0.2);
+      color: var(--accent-blue);
+      border-radius: 3px;
+    }
+    
+    .player-name .leader-badge {
+      font-size: 0.7em;
+      padding: 2px 5px;
+      background: rgba(227, 179, 65, 0.2);
+      color: var(--accent-yellow);
+      border-radius: 3px;
+    }
+    
+    .player-stat {
+      color: var(--text-secondary);
+      font-size: 0.85em;
+      text-align: right;
+      min-width: 45px;
+    }
+    
+    .player-stat.kills { color: var(--accent-green); }
+    .player-stat.deaths { color: var(--accent-red); }
+    .player-stat.score { color: var(--accent-blue); }
+    
+    .player-team {
+      font-size: 0.8em;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+    
+    .player-platform {
+      font-size: 0.75em;
+      color: var(--text-muted);
+    }
+    
+    /* Detail Grid */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .detail-item {
+      background: var(--bg-secondary);
+      padding: 10px 12px;
+      border-radius: 6px;
+    }
+    
+    .detail-label {
+      color: var(--text-muted);
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .detail-value {
+      color: var(--text-primary);
+      font-size: 0.9em;
+      margin-top: 2px;
+    }
+    
+    /* Raw JSON */
+    .raw-toggle {
+      margin-top: 16px;
+    }
+    
+    .raw-toggle summary {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.85em;
+    }
+    
+    .raw-json {
+      background: var(--bg-primary);
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 8px;
+      overflow-x: auto;
+    }
+    
+    .raw-json pre {
+      margin: 0;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8em;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    /* Sidebar */
+    .sidebar { display: flex; flex-direction: column; gap: 16px; }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .stat-card {
+      background: var(--bg-tertiary);
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 1.5em;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+    
+    .stat-label {
+      font-size: 0.75em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    /* Field Reference */
+    .field-table {
+      width: 100%;
+      font-size: 0.8em;
+      border-collapse: collapse;
+    }
+    
+    .field-table th,
+    .field-table td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .field-table th {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+    
+    .field-table code {
+      background: var(--bg-primary);
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-cyan);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    
+    .motd {
+      background: rgba(88, 166, 255, 0.1);
+      border-left: 3px solid var(--accent-blue);
+      padding: 8px 12px;
+      margin: 12px 0;
+      font-size: 0.9em;
+      color: var(--text-secondary);
+      border-radius: 0 6px 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="header-bar">
+    <h1>BZ2 Session Browser</h1>
+    <div class="header-controls">
+      <button id="fetchBtn" onclick="fetchData()">Refresh</button>
+      <label class="toggle-label">
+        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+        Auto-refresh
+      </label>
+      <span id="status" class="status" style="display: none;"></span>
+    </div>
+  </header>
+  
+  <div class="layout">
+    <main>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Active Sessions</h2>
+          <span id="sessionCount" style="color: var(--text-secondary); font-size: 0.85em;">0 sessions</span>
+        </div>
+        <div class="panel-content" id="sessionsContainer">
+          <div class="empty-state">Click "Refresh Sessions" to load data...</div>
+        </div>
+      </div>
+    </main>
+    
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Statistics</h2>
+        </div>
+        <div class="panel-content">
+          <div class="stat-grid" id="statsGrid">
+            <div class="stat-card">
+              <div class="stat-value" id="totalSessions">-</div>
+              <div class="stat-label">Sessions</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalPlayers">-</div>
+              <div class="stat-label">Players</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="inGameCount">-</div>
+              <div class="stat-label">In Game</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="preGameCount">-</div>
+              <div class="stat-label">In Lobby</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-header">
+          <h2>API Field Reference</h2>
+        </div>
+        <div class="panel-content" style="max-height: 300px;">
+          <table class="field-table">
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td><code>si</code></td><td>ServerInfoMode (0-5)</td></tr>
+            <tr><td><code>t</code></td><td>NAT Type (0-7)</td></tr>
+            <tr><td><code>gt</code></td><td>Game Type (1=DM, 2=Strat)</td></tr>
+            <tr><td><code>gtd</code></td><td>Game Mode + Flags</td></tr>
+            <tr><td><code>gtm</code></td><td>Game Time (255=max)</td></tr>
+            <tr><td><code>k</code></td><td>Has Password</td></tr>
+            <tr><td><code>l</code></td><td>Is Locked</td></tr>
+            <tr><td><code>pl[].k</code></td><td>Player Kills</td></tr>
+            <tr><td><code>pl[].d</code></td><td>Player Deaths</td></tr>
+            <tr><td><code>pl[].s</code></td><td>Player Score</td></tr>
+          </table>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Raw API (1 session)</h2>
+        </div>
+        <div class="panel-content" style="max-height: 200px;">
+          <div class="raw-json" id="rawApiPreview">
+            <pre>No data loaded</pre>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+  
+  <div class="json-viewers">
+    <div class="panel" style="margin-top: 20px;">
+      <div class="panel-header">
+        <h2>Parsed API Output (Human-Readable)</h2>
+        <span style="color: var(--text-secondary); font-size: 0.85em;">Compare with reference API</span>
+      </div>
+      <div class="panel-content" style="max-height: 500px;">
+        <div class="raw-json" id="parsedJsonViewer">
+          <pre>No data loaded</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="bz2api.js"></script>
+  <script>
+    let autoRefreshInterval = null;
+    
+    function setStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status ' + type;
+      status.style.display = 'inline-block';
+    }
+    
+    function formatTime(minutes) {
+      if (minutes === null || minutes === undefined) return 'N/A';
+      if (minutes === '>255' || minutes >= 255) return '4h+';
+      if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours}h ${mins}m`;
+      }
+      return `${minutes}m`;
+    }
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function renderPlayer(player, showStats = true) {
+      const badges = [];
+      if (player.isHost) badges.push('<span class="host-badge">HOST</span>');
+      if (player.isTeamLeader) badges.push('<span class="leader-badge">LEADER</span>');
+      
+      const teamBadge = player.team ? 
+        `<span class="player-team">Team ${player.team}</span>` : '';
+      
+      const platform = player.platform ? 
+        `<span class="player-platform">${player.platform}</span>` : '';
+      
+      const statsHtml = showStats ? `
+        <span class="player-stat kills" title="Kills">${player.kills ?? '-'}</span>
+        <span class="player-stat deaths" title="Deaths">${player.deaths ?? '-'}</span>
+        <span class="player-stat score" title="Score">${player.score ?? '-'}</span>
+      ` : '';
+      
+      return `
+        <div class="player">
+          <span class="player-name">${escapeHtml(player.name)} ${badges.join('')}</span>
+          ${statsHtml}
+          ${teamBadge}
+          ${platform}
+        </div>
+      `;
+    }
+    
+    function renderSession(session) {
+      const stateClass = session.state === 'InGame' ? 'state-ingame' : 
+                        session.state === 'PreGame' ? 'state-pregame' : 'state-postgame';
+      const typeClass = session.gameType === 'DM' ? 'type-dm' : 'type-strat';
+      
+      const badges = [
+        `<span class="badge ${stateClass}">${session.state}</span>`,
+        `<span class="badge ${typeClass}">${session.gameModeName || session.gameTypeName}</span>`
+      ];
+      
+      if (session.isDedicatedServer) badges.push('<span class="badge dedicated">Dedicated</span>');
+      if (session.isLocked) badges.push('<span class="badge locked">Locked</span>');
+      if (session.hasPassword) badges.push('<span class="badge password">Password</span>');
+      
+      const motdHtml = session.motd ? 
+        `<div class="motd">${escapeHtml(session.motd)}</div>` : '';
+      
+      const hasStats = session.players.some(p => p.kills || p.deaths || p.score);
+      const playersHtml = session.players.length > 0 ?
+        session.players.map(p => renderPlayer(p, hasStats)).join('') :
+        '<div style="padding: 12px; color: var(--text-muted);">No players</div>';
+      
+      return `
+        <div class="session-card" onclick="toggleSession(this)">
+          <div class="session-header">
+            <div class="session-top">
+              <div class="session-name">${escapeHtml(session.name)}</div>
+              <div class="session-badges">${badges.join('')}</div>
+            </div>
+            <div class="session-meta">
+              <span><span class="icon">🗺️</span> ${escapeHtml(session.mapFile)}</span>
+              <span><span class="icon">👥</span> ${session.playerCount}/${session.maxPlayers}</span>
+              <span><span class="icon">⏱️</span> ${formatTime(session.gameTimeMinutes)}</span>
+              <span><span class="icon">📡</span> ${session.nat.name}</span>
+              <span style="margin-left: auto;"><span class="expand-icon">▶</span></span>
+            </div>
+          </div>
+          <div class="session-details">
+            ${motdHtml}
+            
+            <div class="section-title">Players ${hasStats ? '(K/D/S)' : ''}</div>
+            <div class="player-list">
+              ${playersHtml}
+            </div>
+            
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="detail-label">Version</div>
+                <div class="detail-value">${session.version}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Game Mode</div>
+                <div class="detail-value">${session.gameModeName || 'Unknown'}${session.vehicleOnly ? ' (Vehicle)' : ''}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Respawn</div>
+                <div class="detail-value">${session.respawn}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">NAT Type</div>
+                <div class="detail-value">${session.nat.name}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Server TPS</div>
+                <div class="detail-value">${session.tps}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Max Ping</div>
+                <div class="detail-value">${session.maxPing}ms</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Worst Ping</div>
+                <div class="detail-value">${session.worstPingObserved || 0}ms</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Time Limit</div>
+                <div class="detail-value">${session.timeLimitMinutes ? session.timeLimitMinutes + ' min' : 'None'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Kill Limit</div>
+                <div class="detail-value">${session.killLimit || 'None'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Mods</div>
+                <div class="detail-value">${session.isStock ? 'Stock' : session.mods.join(', ')}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Mod Hash</div>
+                <div class="detail-value">${session.modHash || 'N/A'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Session ID</div>
+                <div class="detail-value" style="font-family: monospace; font-size: 0.85em;">${session.id}</div>
+              </div>
+            </div>
+            
+            <details class="raw-toggle" onclick="event.stopPropagation()">
+              <summary>View Parsed Data</summary>
+              <div class="raw-json">
+                <pre>${escapeHtml(JSON.stringify((() => { const { _raw, ...clean } = session; return clean; })(), null, 2))}</pre>
+              </div>
+            </details>
+            
+            <details class="raw-toggle" onclick="event.stopPropagation()">
+              <summary>View Raw Data</summary>
+              <div class="raw-json">
+                <pre>${escapeHtml(JSON.stringify(session._raw, null, 2))}</pre>
+              </div>
+            </details>
+          </div>
+        </div>
+      `;
+    }
+    
+    function toggleSession(card) {
+      card.classList.toggle('expanded');
+    }
+    
+    function updateStats(sessions) {
+      const totalPlayers = sessions.reduce((sum, s) => sum + s.playerCount, 0);
+      const inGame = sessions.filter(s => s.state === 'InGame').length;
+      const preGame = sessions.filter(s => s.state === 'PreGame').length;
+      
+      document.getElementById('totalSessions').textContent = sessions.length;
+      document.getElementById('totalPlayers').textContent = totalPlayers;
+      document.getElementById('inGameCount').textContent = inGame;
+      document.getElementById('preGameCount').textContent = preGame;
+    }
+    
+    async function fetchData() {
+      const btn = document.getElementById('fetchBtn');
+      btn.disabled = true;
+      setStatus('Fetching...', 'loading');
+      
+      try {
+        const result = await BZ2API.fetchSessions();
+        
+        // Update sessions
+        const container = document.getElementById('sessionsContainer');
+        if (result.sessions.length === 0) {
+          container.innerHTML = '<div class="empty-state">No active sessions found.</div>';
+        } else {
+          container.innerHTML = result.sessions.map(renderSession).join('');
+        }
+        
+        document.getElementById('sessionCount').textContent = `${result.sessions.length} session(s)`;
+        
+        // Update stats
+        updateStats(result.sessions);
+        
+        // Update raw preview (first session only)
+        const rawPreview = result.rawResponse.GET?.slice(0, 1) || [];
+        document.getElementById('rawApiPreview').innerHTML = 
+          '<pre>' + escapeHtml(JSON.stringify(rawPreview, null, 2)) + '</pre>';
+        
+        // Update parsed JSON viewer (exclude _raw to keep it clean)
+        const cleanedSessions = result.sessions.map(session => {
+          const { _raw, ...cleanSession } = session;
+          return cleanSession;
+        });
+        document.getElementById('parsedJsonViewer').innerHTML = 
+          '<pre>' + escapeHtml(JSON.stringify({
+            timestamp: result.timestamp,
+            sessionCount: result.sessions.length,
+            sessions: cleanedSessions
+          }, null, 2)) + '</pre>';
+        
+        setStatus(`Updated ${new Date().toLocaleTimeString()}`, 'success');
+        
+        console.log('Parsed sessions:', result.sessions);
+      } catch (error) {
+        setStatus('Error: ' + error.message, 'error');
+        console.error('Fetch error:', error);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+    
+    function toggleAutoRefresh() {
+      const checkbox = document.getElementById('autoRefresh');
+      if (checkbox.checked) {
+        fetchData();
+        autoRefreshInterval = setInterval(fetchData, 30000);
+      } else {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+      }
+    }
+    
+    // Auto-fetch on load
+    fetchData();
+  </script>
+</body>
+</html>
