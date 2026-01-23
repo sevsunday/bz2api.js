@@ -10,8 +10,10 @@ const BZ2API = (function() {
   const DEFAULT_API_URL = 'http://battlezone99mp.webdev.rebellion.co.uk/lobbyServer';
   
   // Common CORS proxies that can be used if direct fetch fails
+  // These are tried in order if direct fetch fails due to CORS
   const CORS_PROXIES = [
     'https://corsproxy.io/?',
+    'https://api.codetabs.com/v1/proxy?quest=',  // https://codetabs.com/cors-proxy/cors-proxy.html
     'https://api.allorigins.win/raw?url=',
   ];
 
