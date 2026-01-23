@@ -181,6 +181,68 @@ const BZ2API = (function() {
   }
 
   // ============================================================================
+  // STEAM JOIN URL UTILITIES
+  // ============================================================================
+
+  /**
+   * Base Steam Browser protocol URL for directly joining games
+   * 624970 = Battlezone Combat Commander App ID
+   */
+  const STEAM_JOIN_BASE = 'steam://rungame/624970/76561198955218468/-connect-mp%20';
+
+  /**
+   * Convert ASCII string to hexadecimal
+   * @param {string} str - ASCII string to convert
+   * @returns {string} Hexadecimal representation
+   */
+  function stringToHex(str) {
+    return Array.from(str)
+      .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  /**
+   * Build a Steam protocol URL for directly joining a game session
+   * @param {Object} raw - Raw session data from API
+   * @returns {string|null} Steam join URL or null if session can't be joined
+   */
+  function buildSteamJoinUrl(raw) {
+    // Can't join locked or password-protected games
+    if (raw.l === 1 || raw.k === 1) {
+      return null;
+    }
+
+    // Need at least a mod ID to build the join URL
+    const mods = parseModIds(raw.mm);
+    if (mods.length === 0) {
+      return null;
+    }
+
+    // Get the session name (decoded)
+    const sessionName = decodeBase64Name(raw.n);
+    
+    // Build mod list (semicolon-separated)
+    const modList = mods.join(';');
+    
+    // NAT address is the 'g' field (RakNet GUID in custom Base64)
+    const natAddress = raw.g || '';
+
+    // Build args: N,{nameLen},{name},{modListLen},{modList},{nat},0,
+    const args = [
+      'N',
+      sessionName.length.toString(),
+      sessionName,
+      modList.length.toString(),
+      modList,
+      natAddress,
+      '0'
+    ].join(',') + ',';
+
+    // Convert to hex and build full URL
+    return STEAM_JOIN_BASE + stringToHex(args);
+  }
+
+  // ============================================================================
   // FIELD PARSERS
   // ============================================================================
 
@@ -398,7 +460,7 @@ const BZ2API = (function() {
    * @param {boolean} isMPI - Whether this is an MPI game
    * @returns {Object} Parsed player object
    */
-  function parsePlayer(rawPlayer, index = 0, isTeamGame = false, isMPI = false) {
+  function parsePlayer(rawPlayer, index = 0, isTeamGame = false, isMPI = false, gameMode = null) {
     const player = {
       name: decodeBase64Name(rawPlayer.n),
       
@@ -417,10 +479,12 @@ const BZ2API = (function() {
       teamSlot: rawPlayer.t ?? null,
       team: null,
       isTeamLeader: false,
+      isCommander: false,
       teamIndex: null,
       
-      // Host info
-      isHost: index === 0
+      // Status flags
+      isHost: index === 0,
+      isHidden: false
     };
 
     // Parse player ID to extract platform
@@ -435,6 +499,12 @@ const BZ2API = (function() {
         player.gogId = idValue;
         player.platform = 'GOG';
       }
+    }
+
+    // Check if player is hidden (no team assignment)
+    // Hidden players are spectators or in a glitched state
+    if (player.teamSlot === null || player.teamSlot === 255) {
+      player.isHidden = true;
     }
 
     // Parse team assignment
@@ -458,6 +528,12 @@ const BZ2API = (function() {
       }
     }
 
+    // Determine if player is a commander
+    // In STRAT/MPI games, commanders are team leaders (slots 1 and 6)
+    if (gameMode === 'STRAT' || gameMode === 'MPI' || gameMode === 'TEAM_STRAT') {
+      player.isCommander = player.isTeamLeader;
+    }
+
     return player;
   }
 
@@ -471,9 +547,9 @@ const BZ2API = (function() {
     const gameInfo = parseGameTypeAndMode(raw.gt, raw.gtd);
     const isMPI = gameInfo.gameMode === 'MPI';
     
-    // Parse players with game context
+    // Parse players with game context (pass gameMode for commander detection)
     const players = (raw.pl || []).map((p, i) => 
-      parsePlayer(p, i, gameInfo.isTeamGame, isMPI)
+      parsePlayer(p, i, gameInfo.isTeamGame, isMPI, gameInfo.gameMode)
     );
     
     // Parse session state (needs players for stat checking)
@@ -486,6 +562,19 @@ const BZ2API = (function() {
 
     // Decode GUID and convert to hex string (BigInt can't be JSON serialized)
     const guidBigInt = decodeRakNetGuid(raw.g);
+    
+    // Build Steam join URL (returns null if locked/password-protected)
+    const steamJoinUrl = buildSteamJoinUrl(raw);
+    
+    // Collect commanders (players with isCommander: true)
+    const commanders = players
+      .filter(p => p.isCommander)
+      .map(p => p.name);
+    
+    // Collect hidden players (spectators/glitched)
+    const hiddenPlayers = players
+      .filter(p => p.isHidden)
+      .map(p => p.name);
     
     return {
       // Identity
@@ -505,6 +594,8 @@ const BZ2API = (function() {
       players,
       playerCount: players.length,
       maxPlayers: raw.pm,
+      commanders,
+      hiddenPlayers,
       
       // Mods
       mods,
@@ -522,6 +613,7 @@ const BZ2API = (function() {
       
       // Network
       nat: natInfo,
+      steamJoinUrl,
       tps: raw.tps,
       maxPing: raw.pgm,
       worstPingObserved: raw.pg,

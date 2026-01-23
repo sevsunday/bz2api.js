@@ -377,6 +377,45 @@
     .badge.password { background: rgba(227, 179, 65, 0.15); color: var(--accent-yellow); }
     .badge.dedicated { background: rgba(57, 197, 207, 0.15); color: var(--accent-cyan); }
     
+    /* Join Button */
+    .join-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--accent-green);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 0.7em;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      transition: all 0.15s;
+    }
+    
+    .join-btn:hover {
+      background: rgba(63, 185, 80, 0.25);
+      border-color: rgba(63, 185, 80, 0.5);
+    }
+    
+    .join-btn .icon { font-size: 1.1em; }
+    
+    /* Hidden Players Warning */
+    .hidden-warning {
+      background: rgba(248, 81, 73, 0.1);
+      border-left: 2px solid var(--accent-red);
+      padding: 6px 10px;
+      margin: 10px 0;
+      font-size: 0.8em;
+      color: var(--text-secondary);
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .hidden-warning .label {
+      color: var(--accent-red);
+      font-weight: 600;
+    }
+    
     .session-meta {
       display: flex;
       flex-wrap: wrap;
@@ -448,7 +487,9 @@
     }
     
     .player-name .host-badge,
-    .player-name .leader-badge {
+    .player-name .leader-badge,
+    .player-name .commander-badge,
+    .player-name .hidden-badge {
       font-size: 0.65em;
       padding: 1px 4px;
       border-radius: 2px;
@@ -462,6 +503,16 @@
     .player-name .leader-badge {
       background: rgba(227, 179, 65, 0.2);
       color: var(--accent-yellow);
+    }
+    
+    .player-name .commander-badge {
+      background: rgba(188, 140, 255, 0.2);
+      color: var(--accent-purple);
+    }
+    
+    .player-name .hidden-badge {
+      background: rgba(248, 81, 73, 0.15);
+      color: var(--accent-red);
     }
     
     .player-stats {
@@ -935,7 +986,9 @@
     function renderPlayer(player, showStats = true) {
       const badges = [];
       if (player.isHost) badges.push('<span class="host-badge">HOST</span>');
-      if (player.isTeamLeader) badges.push('<span class="leader-badge">LEAD</span>');
+      if (player.isCommander) badges.push('<span class="commander-badge">⌘ CMDR</span>');
+      else if (player.isTeamLeader) badges.push('<span class="leader-badge">LEAD</span>');
+      if (player.isHidden) badges.push('<span class="hidden-badge">HIDDEN</span>');
       
       const teamBadge = player.team ? `<span class="player-team">T${player.team}</span>` : '';
       const platform = player.platform ? `<span class="player-platform">${player.platform}</span>` : '';
@@ -971,7 +1024,19 @@
       if (session.isLocked) badges.push('<span class="badge locked">Locked</span>');
       if (session.hasPassword) badges.push('<span class="badge password">Pass</span>');
       
+      // Join button (only if session has a valid join URL)
+      const joinBtnHtml = session.steamJoinUrl ? 
+        `<a href="${session.steamJoinUrl}" class="join-btn" onclick="event.stopPropagation()" title="Join via Steam"><span class="icon">▶</span> Join</a>` : '';
+      
       const motdHtml = session.motd ? `<div class="motd">${escapeHtml(session.motd)}</div>` : '';
+      
+      // Hidden players warning
+      const hiddenWarningHtml = session.hiddenPlayers.length > 0 ? 
+        `<div class="hidden-warning"><span class="label">Hidden Players:</span> ${session.hiddenPlayers.map(n => escapeHtml(n)).join(', ')}</div>` : '';
+      
+      // Commanders summary
+      const commandersHtml = session.commanders.length > 0 ?
+        `<span><span class="icon">⌘</span> ${session.commanders.map(n => escapeHtml(n)).join(', ')}</span>` : '';
       
       const hasStats = session.players.some(p => p.kills || p.deaths || p.score);
       const playersHtml = session.players.length > 0 ?
@@ -982,7 +1047,7 @@
         <div class="session-card" onclick="toggleSession(this)">
           <div class="session-header">
             <div class="session-top">
-              <div class="session-name">${escapeHtml(session.name)}</div>
+              <div class="session-name">${escapeHtml(session.name)} ${joinBtnHtml}</div>
               <div class="session-badges">${badges.join('')}</div>
             </div>
             <div class="session-meta">
@@ -990,10 +1055,12 @@
               <span><span class="icon">👥</span> ${session.playerCount}/${session.maxPlayers}</span>
               <span><span class="icon">⏱️</span> ${formatTime(session.gameTimeMinutes)}</span>
               <span><span class="icon">📡</span> ${session.nat.name}</span>
+              ${commandersHtml}
               <span style="margin-left: auto;"><span class="expand-icon">▶</span></span>
             </div>
           </div>
           <div class="session-details">
+            ${hiddenWarningHtml}
             ${motdHtml}
             
             <div class="section-title">Players ${hasStats ? '(K/D/S)' : ''}</div>
