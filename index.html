@@ -344,6 +344,7 @@
     }
     
     .session-meta .icon { opacity: 0.7; font-size: 0.95em; }
+    .session-meta .icon.cmdr { font-size: 0.8em; }
     
     .expand-icon {
       color: var(--text-muted);
@@ -1031,7 +1032,7 @@
       
       // Commanders summary
       const commandersHtml = session.commanders.length > 0 ?
-        `<span><span class="icon">⌘</span> ${session.commanders.map(n => escapeHtml(n)).join(', ')}</span>` : '';
+        `<span><span class="icon cmdr">⌘</span> ${session.commanders.map(n => escapeHtml(n)).join(', ')}</span>` : '';
       
       const hasStats = session.players.some(p => p.kills || p.deaths || p.score);
       
