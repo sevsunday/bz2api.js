@@ -492,10 +492,13 @@ const BZ2API = (function() {
     const playerCount = isDedicatedServer ? players.length - 1 : players.length;
     const maxPlayerCount = isDedicatedServer ? (raw.pm - 1) : raw.pm;
 
+    // Decode GUID and convert to hex string (BigInt can't be JSON serialized)
+    const guidBigInt = decodeRakNetGuid(raw.g);
+    
     return {
       // Identity
       id: raw.g,
-      guid: decodeRakNetGuid(raw.g),
+      guid: guidBigInt ? guidBigInt.toString(16).padStart(16, '0') : null,
       name: decodeBase64Name(raw.n),
       
       // Game info
@@ -544,16 +547,29 @@ const BZ2API = (function() {
   }
 
   /**
+   * Add cache-busting parameter to URL to avoid stale proxy responses
+   * @param {string} url - The URL to modify
+   * @returns {string} URL with cache-busting parameter
+   */
+  function addCacheBuster(url) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}_cb=${Date.now()}`;
+  }
+
+  /**
    * Attempt to fetch from the API, trying CORS proxies if direct fetch fails
    * @param {Object} options - Fetch options
    * @returns {Promise<Object>} Raw API response
    */
   async function fetchRaw(options = {}) {
-    const { proxyUrl, apiUrl = DEFAULT_API_URL } = options;
+    const { proxyUrl, apiUrl = DEFAULT_API_URL, bustCache = true } = options;
+    
+    // Add cache-busting to the target URL
+    const targetUrl = bustCache ? addCacheBuster(apiUrl) : apiUrl;
     
     // If a specific proxy is provided, use it
     if (proxyUrl) {
-      const url = proxyUrl + encodeURIComponent(apiUrl);
+      const url = proxyUrl + encodeURIComponent(targetUrl);
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
@@ -561,7 +577,7 @@ const BZ2API = (function() {
     
     // Try direct fetch first
     try {
-      const response = await fetch(apiUrl);
+      const response = await fetch(targetUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     } catch (directError) {
@@ -570,7 +586,7 @@ const BZ2API = (function() {
       // Try each proxy
       for (const proxy of CORS_PROXIES) {
         try {
-          const url = proxy + encodeURIComponent(apiUrl);
+          const url = proxy + encodeURIComponent(targetUrl);
           console.log('Trying proxy:', proxy);
           const response = await fetch(url);
           if (!response.ok) continue;
