@@ -8,7 +8,10 @@ A zero-dependency JavaScript library for fetching and parsing multiplayer sessio
 - **Automatic CORS handling** - Falls back through multiple public proxies
 - **Full data parsing** - Decodes Base64 names, RakNet GUIDs, game modes, team assignments
 - **Steam/GOG integration** - Profile URLs, Workshop URLs, direct join protocol URLs
-- **Data enrichment** - Consolidated cache of unique players and mods
+- **GOG ID cleaning** - Automatically masks high bits from GOG Galaxy IDs
+- **VSR detection** - Identifies games using the Vet Strategy Recycler balance mod
+- **Map data enrichment** - Opt-in integration with GameListAssets API for map names, descriptions, images, and team names
+- **Data cache** - Consolidated cache of unique players and mods across all sessions
 
 ## Quick Start
 
@@ -21,6 +24,21 @@ A zero-dependency JavaScript library for fetching and parsing multiplayer sessio
     console.log('Sessions:', result.sessions);
     console.log('Players:', result.dataCache.players);
     console.log('Mods:', result.dataCache.mods);
+  });
+</script>
+```
+
+### With Map Enrichment
+
+```html
+<script src="bz2api.js"></script>
+<script>
+  BZ2API.fetchSessions({ enrichMaps: true }).then(result => {
+    result.sessions.forEach(session => {
+      console.log(session.mapName);      // "VSR DM: Rocky Canyon"
+      console.log(session.mapImageUrl);  // "https://gamelistassets.iondriver.com/..."
+      console.log(session.teamNames);    // { team1: "ISDF", team2: "Scion" }
+    });
   });
 </script>
 ```
@@ -46,7 +64,8 @@ Fetches and parses all active multiplayer sessions.
 const result = await BZ2API.fetchSessions({
   proxyUrl: 'https://corsproxy.io/?',  // Optional: specific CORS proxy
   apiUrl: 'http://custom-api.com/',     // Optional: custom API endpoint
-  bustCache: true                        // Optional: add cache-busting param (default: true)
+  bustCache: true,                       // Optional: add cache-busting param (default: true)
+  enrichMaps: false                      // Optional: fetch map metadata (default: false)
 });
 ```
 
@@ -59,7 +78,8 @@ const result = await BZ2API.fetchSessions({
   dataCache: {
     players: {...},          // Unique players keyed by ID
     mods: {...}              // Unique mods keyed by ID
-  }
+  },
+  enrichedMaps: false        // Whether map enrichment was used
 }
 ```
 
@@ -96,12 +116,41 @@ Builds consolidated cache from parsed sessions.
 const cache = BZ2API.buildDataCache(parsedSessions);
 ```
 
+### Map Enrichment Functions
+
+#### `fetchMapData(mapFile, modId)`
+
+Fetches map metadata from the GameListAssets API.
+
+```javascript
+const mapData = await BZ2API.fetchMapData('rckcnynvsr', '1325933293');
+// Returns: { name, description, imageUrl, teamNames, ... }
+```
+
+#### `enrichSessionsWithMapData(sessions)`
+
+Enriches an array of sessions with map data (mutates sessions in place).
+
+```javascript
+const sessions = rawData.GET.map(BZ2API.parseSession);
+await BZ2API.enrichSessionsWithMapData(sessions);
+```
+
+#### `clearMapCache()`
+
+Clears the in-memory map data cache.
+
+```javascript
+BZ2API.clearMapCache();
+```
+
 ### Utility Functions
 
 | Function | Description |
 |----------|-------------|
 | `decodeBase64Name(str)` | Decodes Base64 string using Windows-1252 encoding |
 | `decodeRakNetGuid(str)` | Decodes RakNet custom Base64 GUID to BigInt |
+| `cleanGogId(rawGogId)` | Masks high bits from GOG Galaxy IDs for valid profile URLs |
 | `parseGameTypeAndMode(gt, gtd)` | Parses game type and mode from raw fields |
 | `parseSessionState(si, players)` | Determines session state with smart override |
 | `parseNATType(t)` | Parses NAT type to info object |
@@ -127,7 +176,9 @@ BZ2API.NATTypeNames     // { 0: 'None', 1: 'Full Cone', ... }
 BZ2API.GameType         // { ALL: 0, DEATHMATCH: 1, STRATEGY: 2 }
 BZ2API.GameMode         // { DM: 1, TEAM_DM: 2, KOTH: 3, MPI: 13, ... }
 BZ2API.GameModeNames    // { 1: 'Deathmatch', 13: 'MPI', ... }
+BZ2API.VSR_MOD_ID       // '1325933293' - Vet Strategy Recycler mod ID
 BZ2API.DEFAULT_API_URL  // Rebellion lobby server URL
+BZ2API.MAP_API_BASE_URL // GameListAssets API base URL
 BZ2API.CORS_PROXIES     // Array of fallback CORS proxies
 ```
 
@@ -156,9 +207,22 @@ BZ2API.CORS_PROXIES     // Array of fallback CORS proxies
   rawGameType: 1,
   rawGameSubType: 7267,
 
+  // Game Balance
+  gameBalance: "VSR",                  // "VSR" or null
+  gameBalanceName: "Vet Strategy Recycler Variant",  // Full name or null
+
   // Map
   mapFile: "rckcnynvsr",
   mapUrl: null,
+  
+  // Map Enrichment (when enrichMaps: true)
+  mapName: "VSR DM: Rocky Canyon",     // Human-readable name or null
+  mapDescription: "Fight in a...",     // Description or null
+  mapImageUrl: "https://...",          // Preview image URL or null
+  teamNames: {                         // Team names from map data
+    team1: "ISDF",
+    team2: "Scion"
+  },
 
   // Players
   players: [...],                      // Array of player objects
@@ -169,7 +233,7 @@ BZ2API.CORS_PROXIES     // Array of fallback CORS proxies
 
   // Mods
   mods: [
-    { id: "1325933293", name: null, workshopUrl: "https://..." }
+    { id: "1325933293", name: "Vet Strat Recycler Variant", workshopUrl: "https://..." }
   ],
   primaryMod: "1325933293",
   modHash: "Dx7b73",
@@ -219,6 +283,7 @@ BZ2API.CORS_PROXIES     // Array of fallback CORS proxies
   rawId: "S76561198002036575",
   steamId: "76561198002036575",
   gogId: null,
+  gogIdRaw: null,                      // Raw GOG ID before cleaning (for debugging)
   platform: "Steam",
   profileUrl: "https://steamcommunity.com/profiles/76561198002036575/",
 
@@ -256,7 +321,7 @@ BZ2API.CORS_PROXIES     // Array of fallback CORS proxies
   mods: {
     "1325933293": {
       id: "1325933293",
-      name: null,
+      name: "Vet Strat Recycler Variant",  // Enriched from map data, or null
       workshopUrl: "https://steamcommunity.com/sharedfiles/filedetails/?id=1325933293"
     },
     "0": {
@@ -282,6 +347,17 @@ The `g` field uses a custom Base64 alphabet for encoding 64-bit RakNet GUIDs:
 ```
 @123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_
 ```
+
+### GOG ID Cleaning
+
+GOG Galaxy user IDs have extra high bits that must be masked off for valid profile URLs:
+```javascript
+cleanedId = rawId & 0x00ffffffffffffff
+```
+
+### VSR Balance Detection
+
+The library detects sessions using the **Vet Strategy Recycler (VSR)** balance mod by checking if mod ID `1325933293` is present in the mod list.
 
 ### Game Mode Bit Packing
 
@@ -319,6 +395,21 @@ When direct fetch fails, the library automatically tries:
 The library can generate `steam://rungame/` protocol URLs for direct game joining:
 - Only works for sessions without password or lock
 - Encodes session name, mod list, and NAT address in hex format
+
+### Map Data Enrichment
+
+When `enrichMaps: true` is passed to `fetchSessions()`, the library fetches additional metadata from the GameListAssets API:
+
+**API:** `https://gamelistassets.iondriver.com/bzcc/getdata.php?map={mapFile}&mod={modId}`
+
+**Provides:**
+- Human-readable map name
+- Map description
+- Preview image URL
+- Team names (from map's netVars)
+- Mod names (for Workshop items)
+
+Map data is cached in memory to avoid redundant API calls. Use `clearMapCache()` to clear.
 
 ---
 
