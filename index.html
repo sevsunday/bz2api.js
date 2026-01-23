@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BZ2 Session Browser</title>
+  <link rel="stylesheet" href="css/json-explorer.css">
   <style>
     :root {
       --bg-primary: #0d1117;
@@ -216,106 +217,17 @@
       font-size: 0.8em;
     }
     
-    .json-panel.collapsed .json-tabs,
-    .json-panel.collapsed .json-content {
+    .json-panel.collapsed .json-explorer-container {
       display: none;
     }
     
-    /* JSON Tabs */
-    .json-tabs {
-      display: flex;
-      gap: 4px;
-      padding: 8px 12px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    
-    .json-tab {
-      padding: 5px 14px;
-      font-size: 0.75em;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    
-    .json-tab:hover {
-      background: var(--border);
-      color: var(--text-primary);
-    }
-    
-    .json-tab.active {
-      background: var(--accent-blue);
-      color: var(--bg-primary);
-      border-color: var(--accent-blue);
-    }
-    
-    /* JSON Content */
-    .json-content {
+    /* JSON Explorer Container */
+    .json-explorer-container {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-    }
-    
-    .json-view {
-      flex: 1;
-      overflow: auto;
-      padding: 12px;
-      background: var(--bg-primary);
       margin: 8px;
-      border-radius: 6px;
-      min-height: 0;
-    }
-    
-    .json-view pre {
-      margin: 0;
-      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-      font-size: 0.75em;
-      line-height: 1.5;
-      color: var(--text-secondary);
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-    
-    .json-view-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    
-    .json-view-label {
-      font-size: 0.7em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
-    }
-    
-    .copy-btn {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 3px 8px;
-      font-size: 0.7em;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    
-    .copy-btn:hover {
-      background: var(--border);
-      color: var(--text-primary);
-    }
-    
-    .copy-btn.copied {
-      background: rgba(63, 185, 80, 0.2);
-      border-color: var(--accent-green);
-      color: var(--accent-green);
     }
     
     /* Session Cards */
@@ -652,49 +564,10 @@
       opacity: 1;
     }
     
-    .splitter-h {
-      height: 6px;
-      background: var(--border);
-      cursor: row-resize;
-      flex-shrink: 0;
-      transition: background 0.15s;
-      margin: 0 8px;
-      border-radius: 3px;
-      position: relative;
-    }
-    
-    .splitter-h:hover,
-    .splitter-h.active {
-      background: var(--accent-blue);
-    }
-    
-    .splitter-h::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 30px;
-      height: 2px;
-      background: var(--text-muted);
-      border-radius: 1px;
-      opacity: 0.5;
-    }
-    
-    .splitter-h:hover::after,
-    .splitter-h.active::after {
-      background: var(--bg-primary);
-      opacity: 1;
-    }
-    
     /* Prevent text selection during drag */
     body.dragging {
       user-select: none;
       cursor: col-resize;
-    }
-    
-    body.dragging-h {
-      cursor: row-resize;
     }
   </style>
 </head>
@@ -740,55 +613,50 @@
     <!-- Vertical Splitter -->
     <div class="splitter-v" id="splitterV"></div>
     
-    <!-- Right Panel - JSON Viewer -->
+    <!-- Right Panel - JSON Explorer -->
     <div class="json-panel" id="jsonPanel" style="width: 50%">
       <div class="json-header">
-        <h2>JSON Viewer</h2>
+        <h2>JSON Explorer</h2>
         <button class="collapse-btn" onclick="toggleJsonPanel()" title="Collapse panel">»</button>
       </div>
-      <div class="json-tabs">
-        <button class="json-tab active" data-view="parsed" onclick="setJsonView('parsed')">Parsed</button>
-        <button class="json-tab" data-view="raw" onclick="setJsonView('raw')">Raw</button>
-        <button class="json-tab" data-view="both" onclick="setJsonView('both')">Both</button>
-      </div>
-      <div class="json-content" id="jsonContent">
-        <div class="json-view" id="parsedView">
-          <div class="json-view-header">
-            <div class="json-view-label">Parsed Output</div>
-            <button class="copy-btn" onclick="copyJson('parsed')">Copy</button>
-          </div>
-          <pre>No data loaded</pre>
-        </div>
-        <!-- Horizontal Splitter (visible only in "both" mode) -->
-        <div class="splitter-h" id="splitterH" style="display: none;"></div>
-        <div class="json-view" id="rawView" style="display: none;">
-          <div class="json-view-header">
-            <div class="json-view-label">Raw API Response</div>
-            <button class="copy-btn" onclick="copyJson('raw')">Copy</button>
-          </div>
-          <pre>No data loaded</pre>
-        </div>
+      <div class="json-explorer-container" id="jsonExplorerContainer">
+        <!-- JsonExplorer will be initialized here -->
       </div>
     </div>
   </div>
   
   <script src="bz2api.js"></script>
+  <script src="js/json-explorer.js"></script>
   <script>
     let autoRefreshInterval = null;
-    let currentJsonView = 'parsed';
     let jsonPanelWidth = 50; // percentage
-    let jsonSplitRatio = 0.5; // 50/50 for parsed/raw
+    let jsonExplorer = null;
+    let schemaData = null;
+    
+    // ============ Initialize JSON Explorer ============
+    async function initJsonExplorer() {
+      // Load schema
+      try {
+        const response = await fetch('data/bz2-schema.json');
+        schemaData = await response.json();
+      } catch (err) {
+        console.warn('Failed to load schema:', err);
+        schemaData = {};
+      }
+      
+      // Initialize explorer
+      jsonExplorer = new JsonExplorer('#jsonExplorerContainer', {
+        schema: schemaData,
+        defaultExpandDepth: 2
+      });
+    }
     
     // ============ Splitter Logic ============
     function initSplitters() {
       const splitterV = document.getElementById('splitterV');
-      const splitterH = document.getElementById('splitterH');
       const sessionsPanel = document.querySelector('.sessions-panel');
       const jsonPanel = document.getElementById('jsonPanel');
       const mainContainer = document.querySelector('.main-container');
-      const parsedView = document.getElementById('parsedView');
-      const rawView = document.getElementById('rawView');
-      const jsonContent = document.getElementById('jsonContent');
       
       // Vertical splitter (adjusts panel widths)
       let isDraggingV = false;
@@ -798,16 +666,6 @@
         isDraggingV = true;
         splitterV.classList.add('active');
         document.body.classList.add('dragging');
-        e.preventDefault();
-      });
-      
-      // Horizontal splitter (adjusts JSON view heights)
-      let isDraggingH = false;
-      
-      splitterH.addEventListener('mousedown', (e) => {
-        isDraggingH = true;
-        splitterH.classList.add('active');
-        document.body.classList.add('dragging', 'dragging-h');
         e.preventDefault();
       });
       
@@ -840,25 +698,6 @@
           // Store percentage for collapse/expand
           jsonPanelWidth = (newJsonWidth / containerRect.width) * 100;
         }
-        
-        if (isDraggingH) {
-          const contentRect = jsonContent.getBoundingClientRect();
-          const splitterHeight = 6;
-          const minViewHeight = 100;
-          
-          // Calculate position relative to content area
-          let newParsedHeight = e.clientY - contentRect.top;
-          let totalHeight = contentRect.height - splitterHeight;
-          
-          // Enforce minimums
-          if (newParsedHeight < minViewHeight) newParsedHeight = minViewHeight;
-          if (newParsedHeight > totalHeight - minViewHeight) newParsedHeight = totalHeight - minViewHeight;
-          
-          // Calculate ratio and apply as flex
-          jsonSplitRatio = newParsedHeight / totalHeight;
-          parsedView.style.flex = jsonSplitRatio;
-          rawView.style.flex = 1 - jsonSplitRatio;
-        }
       });
       
       document.addEventListener('mouseup', () => {
@@ -867,41 +706,21 @@
           splitterV.classList.remove('active');
           document.body.classList.remove('dragging');
         }
-        if (isDraggingH) {
-          isDraggingH = false;
-          splitterH.classList.remove('active');
-          document.body.classList.remove('dragging', 'dragging-h');
-        }
       });
     }
     
-    // Initialize splitters on load
-    document.addEventListener('DOMContentLoaded', initSplitters);
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', async () => {
+      initSplitters();
+      await initJsonExplorer();
+      fetchData();
+    });
     
     function setStatus(message, type) {
       const status = document.getElementById('status');
       status.textContent = message;
       status.className = 'status ' + type;
       status.style.display = 'inline-block';
-    }
-    
-    function copyJson(type) {
-      const view = type === 'parsed' ? document.getElementById('parsedView') : document.getElementById('rawView');
-      const pre = view.querySelector('pre');
-      const btn = view.querySelector('.copy-btn');
-      
-      navigator.clipboard.writeText(pre.textContent).then(() => {
-        btn.textContent = 'Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => {
-          btn.textContent = 'Copy';
-          btn.classList.remove('copied');
-        }, 1500);
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-        btn.textContent = 'Error';
-        setTimeout(() => btn.textContent = 'Copy', 1500);
-      });
     }
     
     function toggleJsonPanel() {
@@ -929,39 +748,6 @@
         sessionsPanel.style.flex = 'none';
         sessionsPanel.style.width = (containerWidth - jsonWidth - 6) + 'px';
         panel.style.width = jsonWidth + 'px';
-      }
-    }
-    
-    function setJsonView(view) {
-      currentJsonView = view;
-      
-      // Update tab states
-      document.querySelectorAll('.json-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.view === view);
-      });
-      
-      const parsedView = document.getElementById('parsedView');
-      const rawView = document.getElementById('rawView');
-      const splitterH = document.getElementById('splitterH');
-      
-      if (view === 'parsed') {
-        parsedView.style.display = 'block';
-        rawView.style.display = 'none';
-        splitterH.style.display = 'none';
-        parsedView.style.flex = '1';
-      } else if (view === 'raw') {
-        parsedView.style.display = 'none';
-        rawView.style.display = 'none';
-        splitterH.style.display = 'none';
-        rawView.style.display = 'block';
-        rawView.style.flex = '1';
-      } else { // both - stacked with splitter
-        parsedView.style.display = 'block';
-        rawView.style.display = 'block';
-        splitterH.style.display = 'block';
-        // Apply stored split ratio
-        parsedView.style.flex = jsonSplitRatio;
-        rawView.style.flex = 1 - jsonSplitRatio;
       }
     }
     
@@ -1138,21 +924,22 @@
       document.getElementById('preGameCount').textContent = preGame;
     }
     
-    function updateJsonViews(result) {
+    function updateJsonExplorer(result) {
+      if (!jsonExplorer) return;
+      
       // Parsed view (clean, no _raw)
       const cleanedSessions = result.sessions.map(session => {
         const { _raw, ...cleanSession } = session;
         return cleanSession;
       });
       
-      document.querySelector('#parsedView pre').textContent = JSON.stringify({
+      const parsedData = {
         timestamp: result.timestamp,
         sessionCount: result.sessions.length,
         sessions: cleanedSessions
-      }, null, 2);
+      };
       
-      // Raw view
-      document.querySelector('#rawView pre').textContent = JSON.stringify(result.rawResponse, null, 2);
+      jsonExplorer.setData(parsedData, result.rawResponse);
     }
     
     async function fetchData() {
@@ -1174,8 +961,8 @@
         // Update stats
         updateStats(result.sessions);
         
-        // Update JSON views
-        updateJsonViews(result);
+        // Update JSON Explorer
+        updateJsonExplorer(result);
         
         setStatus(`${new Date().toLocaleTimeString()}`, 'success');
         
@@ -1198,9 +985,6 @@
         autoRefreshInterval = null;
       }
     }
-    
-    // Auto-fetch on load
-    fetchData();
   </script>
 </body>
 </html>

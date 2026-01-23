@@ -1,0 +1,362 @@
+/**
+ * JSON Explorer Component Styles
+ * Uses CSS variables from parent (index.html)
+ */
+
+/* Explorer Container */
+.json-explorer {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.8em;
+  line-height: 1.6;
+  background: var(--bg-primary);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Toolbar */
+.json-explorer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.json-explorer-toolbar select {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.json-explorer-toolbar select:hover {
+  border-color: var(--text-muted);
+}
+
+.json-explorer-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 8px;
+  transition: border-color 0.15s;
+}
+
+.json-explorer-search:focus-within {
+  border-color: var(--accent-blue);
+}
+
+.json-explorer-search .search-icon {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  margin-right: 6px;
+}
+
+.json-explorer-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  padding: 5px 0;
+  font-size: 0.85em;
+  outline: none;
+}
+
+.json-explorer-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.json-explorer-search .clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 1.1em;
+  line-height: 1;
+  border-radius: 3px;
+  visibility: hidden;
+}
+
+.json-explorer-search .clear-btn.visible {
+  visibility: visible;
+}
+
+.json-explorer-search .clear-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.json-explorer-toolbar .tool-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.json-explorer-toolbar .tool-btn:hover {
+  background: var(--border);
+  color: var(--text-primary);
+}
+
+.json-explorer-toolbar .tool-btn.copied {
+  background: rgba(63, 185, 80, 0.2);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+/* Tree Container */
+.json-explorer-tree {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+
+/* Node Styles */
+.json-node {
+  position: relative;
+}
+
+.json-node-line {
+  display: flex;
+  align-items: flex-start;
+  padding: 1px 0;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.json-node-line:hover {
+  background: rgba(88, 166, 255, 0.05);
+}
+
+.json-node-toggle {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-right: 2px;
+  border-radius: 3px;
+  font-size: 0.7em;
+  user-select: none;
+}
+
+.json-node-toggle:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.json-node-toggle.collapsed::before {
+  content: '▶';
+}
+
+.json-node-toggle.expanded::before {
+  content: '▼';
+}
+
+.json-node-toggle.empty {
+  visibility: hidden;
+}
+
+/* Key (property name) */
+.json-key {
+  color: var(--accent-cyan);
+  margin-right: 4px;
+}
+
+.json-key::after {
+  content: ':';
+  color: var(--text-muted);
+  margin-right: 6px;
+}
+
+/* Array index */
+.json-index {
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.json-index::after {
+  content: ':';
+  color: var(--text-muted);
+  margin-right: 6px;
+}
+
+/* Values */
+.json-value {
+  word-break: break-word;
+}
+
+.json-value.string {
+  color: var(--accent-green);
+}
+
+.json-value.string::before,
+.json-value.string::after {
+  content: '"';
+  color: var(--accent-green);
+  opacity: 0.7;
+}
+
+.json-value.number {
+  color: var(--accent-orange);
+}
+
+.json-value.boolean {
+  color: var(--accent-purple);
+}
+
+.json-value.null {
+  color: var(--accent-red);
+  font-style: italic;
+}
+
+/* Object/Array summary */
+.json-summary {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.json-summary .type {
+  color: var(--text-secondary);
+}
+
+.json-summary .count {
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* Children container */
+.json-children {
+  margin-left: 16px;
+  border-left: 1px solid var(--border);
+  padding-left: 8px;
+}
+
+.json-children.hidden {
+  display: none;
+}
+
+/* Closing bracket */
+.json-bracket {
+  color: var(--text-muted);
+}
+
+/* Tooltip icon */
+.json-tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  color: var(--accent-blue);
+  opacity: 0.5;
+  cursor: help;
+  font-size: 0.75em;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.json-tooltip-icon:hover {
+  opacity: 1;
+}
+
+/* Tooltip popup */
+.json-tooltip {
+  position: absolute;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  max-width: 350px;
+  font-size: 0.85em;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.json-tooltip .tooltip-path {
+  color: var(--accent-cyan);
+  font-size: 0.9em;
+  margin-bottom: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.json-tooltip .tooltip-desc {
+  color: var(--text-primary);
+}
+
+/* Search highlight */
+.json-highlight {
+  background: rgba(227, 179, 65, 0.3);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* No matches message */
+.json-no-matches {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Loading state */
+.json-explorer-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+/* Hidden by search */
+.json-node.search-hidden {
+  display: none;
+}
+
+/* Match path indicator */
+.json-node.search-match > .json-node-line {
+  background: rgba(227, 179, 65, 0.1);
+}
+
+/* Expand ancestors of match */
+.json-node.search-ancestor > .json-children {
+  display: block !important;
+}
+
+/* Stats bar in toolbar */
+.json-explorer-stats {
+  color: var(--text-muted);
+  font-size: 0.75em;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.json-explorer-stats .match-count {
+  color: var(--accent-yellow);
+  font-weight: 600;
+}

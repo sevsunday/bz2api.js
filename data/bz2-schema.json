@@ -1,0 +1,80 @@
+{
+  "_description": "BZ2 API Field Schema - Tooltips and descriptions for all parsed fields",
+  
+  "timestamp": "ISO 8601 timestamp when the data was fetched",
+  "sessionCount": "Total number of active game sessions",
+  
+  "sessions": "Array of active multiplayer game sessions",
+  "sessions.*": "Individual game session object",
+  
+  "sessions.*.id": "RakNet GUID in custom Base64 encoding (used as NAT punch-through address)",
+  "sessions.*.guid": "Decoded 64-bit GUID as 16-character hexadecimal string",
+  "sessions.*.name": "Session name set by the host (decoded from Base64/cp1252)",
+  
+  "sessions.*.version": "Game client version (e.g., '2.0.204.1')",
+  "sessions.*.gameType": "High-level game type: 'DM' (Deathmatch) or 'STRAT' (Strategy)",
+  "sessions.*.gameTypeName": "Human-readable game type name",
+  "sessions.*.gameMode": "Specific game mode: DM, TEAM_DM, KOTH, CTF, STRAT, MPI, etc.",
+  "sessions.*.gameModeName": "Human-readable game mode name",
+  "sessions.*.isTeamGame": "True if this is a team-based game mode",
+  "sessions.*.respawn": "Respawn rules: 'One' (one life), 'Race' (same race), 'Any' (any race)",
+  "sessions.*.vehicleOnly": "True if players must stay in vehicles (no pilot mode)",
+  "sessions.*.rawGameType": "Original gt field value from Rebellion API (1=DM, 2=STRAT)",
+  "sessions.*.rawGameSubType": "Original gtd field value encoding mode, team, and respawn flags",
+  
+  "sessions.*.mapFile": "Map filename without extension (e.g., 'rckcnynvsr')",
+  "sessions.*.mapUrl": "Custom map download URL if provided by host",
+  
+  "sessions.*.players": "Array of players currently in the session",
+  "sessions.*.players.*": "Individual player object",
+  "sessions.*.players.*.name": "Player's in-game display name (decoded from Base64/cp1252)",
+  "sessions.*.players.*.rawId": "Original player ID string with platform prefix (S=Steam, G=GOG)",
+  "sessions.*.players.*.steamId": "Steam 64-bit ID if player is on Steam (null otherwise)",
+  "sessions.*.players.*.gogId": "GOG Galaxy ID if player is on GOG (null otherwise)",
+  "sessions.*.players.*.platform": "Platform identifier: 'Steam' or 'GOG'",
+  "sessions.*.players.*.kills": "Player's kill count (null if not in-game or hidden)",
+  "sessions.*.players.*.deaths": "Player's death count (null if not in-game or hidden)",
+  "sessions.*.players.*.score": "Player's total score (null if not in-game or hidden)",
+  "sessions.*.players.*.teamSlot": "Raw team slot number (1-5 = Team 1, 6-10 = Team 2, 255 = hidden)",
+  "sessions.*.players.*.team": "Parsed team number: 1 or 2 (null for DM/hidden players)",
+  "sessions.*.players.*.isTeamLeader": "True if player is team leader (slot 1 or 6)",
+  "sessions.*.players.*.isCommander": "True if player is commander in STRAT/MPI games (same as team leader)",
+  "sessions.*.players.*.teamIndex": "Zero-based index within their team (0-4)",
+  "sessions.*.players.*.isHost": "True if this player is the session host (always first in list)",
+  "sessions.*.players.*.isHidden": "True if player has no team assignment (spectator or glitched state)",
+  
+  "sessions.*.playerCount": "Number of players currently in the session",
+  "sessions.*.maxPlayers": "Maximum players allowed in the session",
+  "sessions.*.commanders": "Array of commander player names (quick reference for STRAT/MPI)",
+  "sessions.*.hiddenPlayers": "Array of hidden player names (spectators or glitched)",
+  
+  "sessions.*.mods": "Array of Steam Workshop mod IDs required for this session",
+  "sessions.*.primaryMod": "Primary mod ID (first in the mod list)",
+  "sessions.*.modHash": "Short hash identifying the mod combination",
+  "sessions.*.isStock": "True if no mods are required (vanilla game)",
+  
+  "sessions.*.state": "Current session state: 'PreGame', 'InGame', or 'PostGame'",
+  "sessions.*.stateDetail": "Detailed state: 'waiting', 'full', 'playing', 'exiting', 'unknown'",
+  "sessions.*.serverInfoMode": "Raw si field value (1-5) indicating server state",
+  "sessions.*.hasOpenSlots": "True if session has room for more players",
+  
+  "sessions.*.isLocked": "True if host has locked the session (no new players allowed)",
+  "sessions.*.hasPassword": "True if session requires a password to join",
+  "sessions.*.motd": "Message of the day set by the host (null if not set)",
+  
+  "sessions.*.nat": "NAT traversal information for the session",
+  "sessions.*.nat.id": "NAT type ID: 0=None, 1=Full Cone, 2=Address Restricted, 3=Port Restricted, 4=Symmetric, 5=Unknown, 7=UPnP",
+  "sessions.*.nat.name": "Human-readable NAT type name",
+  "sessions.*.nat.canDirectConnect": "True if direct connection is possible (None or UPnP)",
+  "sessions.*.nat.isSymmetric": "True if NAT is symmetric (hardest to connect through)",
+  
+  "sessions.*.steamJoinUrl": "Steam protocol URL to join directly (null if locked or password-protected)",
+  "sessions.*.tps": "Server tick rate (ticks per second, usually 20)",
+  "sessions.*.maxPing": "Maximum allowed ping in milliseconds",
+  "sessions.*.worstPingObserved": "Highest ping seen among current players",
+  
+  "sessions.*.gameTimeMinutes": "Time elapsed since session was created (capped at 255)",
+  "sessions.*.timeElapsedMinutes": "Formatted time elapsed (shows '>255' if maxed out)",
+  "sessions.*.timeLimitMinutes": "Time limit for the match if set (null if unlimited)",
+  "sessions.*.killLimit": "Kill/score limit for the match if set (null if unlimited)"
+}
