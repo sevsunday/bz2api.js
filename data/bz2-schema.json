@@ -3,6 +3,7 @@
   
   "timestamp": "ISO 8601 timestamp when the data was fetched",
   "sessionCount": "Total number of active game sessions",
+  "enrichedMaps": "True if map data enrichment was enabled for this fetch",
   
   "sessions": "Array of active multiplayer game sessions",
   "sessions.*": "Individual game session object",
@@ -22,15 +23,25 @@
   "sessions.*.rawGameType": "Original gt field value from Rebellion API (1=DM, 2=STRAT)",
   "sessions.*.rawGameSubType": "Original gtd field value encoding mode, team, and respawn flags",
   
+  "sessions.*.gameBalance": "Game balance paradigm identifier (e.g., 'VSR' for Vet Strategy Recycler)",
+  "sessions.*.gameBalanceName": "Full name of the game balance paradigm",
+  
   "sessions.*.mapFile": "Map filename without extension (e.g., 'rckcnynvsr')",
   "sessions.*.mapUrl": "Custom map download URL if provided by host",
+  "sessions.*.mapName": "Human-readable map name from GameListAssets API (requires enrichMaps: true)",
+  "sessions.*.mapDescription": "Map description from GameListAssets API (requires enrichMaps: true)",
+  "sessions.*.mapImageUrl": "URL to map preview image from GameListAssets (requires enrichMaps: true)",
+  "sessions.*.teamNames": "Team name customizations from map data (requires enrichMaps: true)",
+  "sessions.*.teamNames.team1": "Custom name for Team 1 (e.g., 'ISDF', 'Naughty')",
+  "sessions.*.teamNames.team2": "Custom name for Team 2 (e.g., 'Scions', 'Nice')",
   
   "sessions.*.players": "Array of players currently in the session",
   "sessions.*.players.*": "Individual player object",
   "sessions.*.players.*.name": "Player's in-game display name (decoded from Base64/cp1252)",
   "sessions.*.players.*.rawId": "Original player ID string with platform prefix (S=Steam, G=GOG)",
   "sessions.*.players.*.steamId": "Steam 64-bit ID if player is on Steam (null otherwise)",
-  "sessions.*.players.*.gogId": "GOG Galaxy ID if player is on GOG (null otherwise)",
+  "sessions.*.players.*.gogId": "Cleaned GOG Galaxy ID with high bits removed (null otherwise)",
+  "sessions.*.players.*.gogIdRaw": "Original GOG Galaxy ID before cleaning (for debugging)",
   "sessions.*.players.*.platform": "Platform identifier: 'Steam' or 'GOG'",
   "sessions.*.players.*.profileUrl": "Link to player's Steam or GOG profile page",
   "sessions.*.players.*.kills": "Player's kill count (null if not in-game or hidden)",

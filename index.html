@@ -288,6 +288,7 @@
     .badge.locked { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
     .badge.password { background: rgba(227, 179, 65, 0.15); color: var(--accent-yellow); }
     .badge.dedicated { background: rgba(57, 197, 207, 0.15); color: var(--accent-cyan); }
+    .badge.vsr { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
     
     /* Join Button */
     .join-btn {
@@ -359,6 +360,22 @@
     }
     
     .session-card.expanded .session-details { display: block; }
+    
+    /* Map Preview */
+    .map-preview {
+      float: right;
+      margin: 12px 0 12px 12px;
+      max-width: 150px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    
+    .map-preview img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
     
     /* Player List */
     .section-title {
@@ -671,6 +688,10 @@
         <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
         Auto-refresh
       </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="enrichMaps" checked onchange="saveMapEnrichmentPref()">
+        Map Data
+      </label>
       <span id="status" class="status" style="display: none;"></span>
     </div>
   </header>
@@ -802,9 +823,27 @@
       });
     }
     
+    // ============ Map Enrichment Preference ============
+    function loadMapEnrichmentPref() {
+      const saved = localStorage.getItem('bz2api_enrichMaps');
+      // Default to true (checked) if no preference saved
+      const enrichMaps = saved === null ? true : saved === 'true';
+      document.getElementById('enrichMaps').checked = enrichMaps;
+    }
+    
+    function saveMapEnrichmentPref() {
+      const enrichMaps = document.getElementById('enrichMaps').checked;
+      localStorage.setItem('bz2api_enrichMaps', enrichMaps.toString());
+    }
+    
+    function getEnrichMapsOption() {
+      return document.getElementById('enrichMaps').checked;
+    }
+    
     // Initialize on load
     document.addEventListener('DOMContentLoaded', async () => {
       initSplitters();
+      loadMapEnrichmentPref();
       await initJsonExplorer();
       fetchData();
     });
@@ -922,14 +961,18 @@
           team2Html = '<div class="player empty-team">No players</div>';
         }
         
+        // Use enriched team names if available
+        const team1Name = session.teamNames?.team1 || 'Team 1';
+        const team2Name = session.teamNames?.team2 || 'Team 2';
+        
         return `
           <div class="players-grid">
             <div class="team-column">
-              <div class="team-header">Team 1</div>
+              <div class="team-header">${escapeHtml(team1Name)}</div>
               <div class="player-list">${team1Html}</div>
             </div>
             <div class="team-column">
-              <div class="team-header">Team 2</div>
+              <div class="team-header">${escapeHtml(team2Name)}</div>
               <div class="player-list">${team2Html}</div>
             </div>
           </div>
@@ -970,6 +1013,9 @@
         `<span class="badge ${typeClass}">${session.gameModeName || session.gameTypeName}</span>`
       ];
       
+      // VSR balance badge
+      if (session.gameBalance === 'VSR') badges.push('<span class="badge vsr">VSR</span>');
+      
       if (session.isLocked) badges.push('<span class="badge locked">Locked</span>');
       if (session.hasPassword) badges.push('<span class="badge password">Pass</span>');
       
@@ -997,7 +1043,7 @@
               <div class="session-badges">${badges.join('')}</div>
             </div>
             <div class="session-meta">
-              <span><span class="icon">🗺️</span> ${escapeHtml(session.mapFile)}</span>
+              <span><span class="icon">🗺️</span> ${escapeHtml(session.mapName || session.mapFile)}</span>
               <span><span class="icon">👥</span> ${session.playerCount}/${session.maxPlayers}</span>
               <span><span class="icon">⏱️</span> ${formatTime(session.gameTimeMinutes)}</span>
               <span><span class="icon">📡</span> ${session.nat.name}</span>
@@ -1006,6 +1052,7 @@
             </div>
           </div>
           <div class="session-details">
+            ${session.mapImageUrl ? `<div class="map-preview"><img src="${session.mapImageUrl}" alt="${escapeHtml(session.mapName || session.mapFile)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
             ${hiddenWarningHtml}
             ${motdHtml}
             
@@ -1184,10 +1231,11 @@
     async function fetchData() {
       const btn = document.getElementById('fetchBtn');
       btn.disabled = true;
-      setStatus('Fetching...', 'loading');
+      const enrichMaps = getEnrichMapsOption();
+      setStatus(enrichMaps ? 'Fetching + enriching...' : 'Fetching...', 'loading');
       
       try {
-        const result = await BZ2API.fetchSessions();
+        const result = await BZ2API.fetchSessions({ enrichMaps });
         
         // Store result for session selection feature
         lastFetchResult = result;

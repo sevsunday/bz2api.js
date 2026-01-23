@@ -8,6 +8,7 @@ const BZ2API = (function() {
   'use strict';
 
   const DEFAULT_API_URL = 'http://battlezone99mp.webdev.rebellion.co.uk/lobbyServer';
+  const MAP_API_BASE_URL = 'https://gamelistassets.iondriver.com/bzcc';
   
   // Common CORS proxies that can be used if direct fetch fails
   // These are tried in order if direct fetch fails due to CORS
@@ -16,6 +17,9 @@ const BZ2API = (function() {
     'https://api.codetabs.com/v1/proxy?quest=',  // https://codetabs.com/cors-proxy/cors-proxy.html
     'https://api.allorigins.win/raw?url=',
   ];
+
+  // VSR (Vet Strategy Recycler) mod ID - special balance mod
+  const VSR_MOD_ID = '1325933293';
 
   // ============================================================================
   // CONSTANTS & ENUMS
@@ -178,6 +182,22 @@ const BZ2API = (function() {
       }
     }
     return result;
+  }
+
+  /**
+   * Clean GOG Galaxy User ID by removing high bits
+   * GOG IDs have extra bits that need to be masked off
+   * @param {string} rawGogId - The raw GOG Galaxy ID
+   * @returns {string} Cleaned GOG ID
+   */
+  function cleanGogId(rawGogId) {
+    if (!rawGogId) return null;
+    try {
+      const cleaned = BigInt(rawGogId) & BigInt('0x00ffffffffffffff');
+      return cleaned.toString();
+    } catch (e) {
+      return rawGogId; // Return original if BigInt fails
+    }
   }
 
   // ============================================================================
@@ -545,9 +565,12 @@ const BZ2API = (function() {
         player.platform = 'Steam';
         player.profileUrl = buildSteamProfileUrl(idValue);
       } else if (idPrefix === 'G') {
-        player.gogId = idValue;
+        // GOG IDs need high bits cleaned for proper profile URLs
+        const cleanedGogId = cleanGogId(idValue);
+        player.gogId = cleanedGogId;
+        player.gogIdRaw = idValue; // Keep raw for debugging
         player.platform = 'GOG';
-        player.profileUrl = buildGogProfileUrl(idValue);
+        player.profileUrl = buildGogProfileUrl(cleanedGogId);
       }
     }
 
@@ -627,6 +650,9 @@ const BZ2API = (function() {
       .filter(p => p.isHidden)
       .map(p => p.name);
     
+    // Detect VSR (Vet Strategy Recycler) balance mod
+    const isVSR = modIds.includes(VSR_MOD_ID);
+    
     return {
       // Identity
       id: raw.g,
@@ -636,6 +662,10 @@ const BZ2API = (function() {
       // Game info
       version: raw.v,
       ...gameInfo,
+      
+      // Game balance (VSR detection)
+      gameBalance: isVSR ? 'VSR' : null,
+      gameBalanceName: isVSR ? 'Vet Strategy Recycler Variant' : null,
       
       // Map
       mapFile: raw.m,
@@ -688,6 +718,150 @@ const BZ2API = (function() {
   function addCacheBuster(url) {
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}_cb=${Date.now()}`;
+  }
+
+  // ============================================================================
+  // MAP DATA ENRICHMENT (OPT-IN)
+  // ============================================================================
+
+  /**
+   * Cache for map data to avoid repeated API calls
+   */
+  const mapDataCache = new Map();
+
+  /**
+   * Fetch map metadata from GameListAssets API
+   * @param {string} mapFile - Map filename (without extension)
+   * @param {string} modId - Primary mod ID (or '0' for stock)
+   * @returns {Promise<Object|null>} Map data or null if fetch fails
+   */
+  async function fetchMapData(mapFile, modId = '0') {
+    if (!mapFile) return null;
+    
+    // Check cache first
+    const cacheKey = `${modId}:${mapFile}`;
+    if (mapDataCache.has(cacheKey)) {
+      return mapDataCache.get(cacheKey);
+    }
+
+    const apiUrl = `${MAP_API_BASE_URL}/getdata.php?map=${encodeURIComponent(mapFile)}&mod=${encodeURIComponent(modId)}`;
+    
+    // Try direct fetch first
+    try {
+      const response = await fetch(apiUrl);
+      if (response.ok) {
+        const data = await response.json();
+        const result = parseMapData(data, mapFile);
+        mapDataCache.set(cacheKey, result);
+        return result;
+      }
+    } catch (directError) {
+      // Try CORS proxies
+      for (const proxy of CORS_PROXIES) {
+        try {
+          const url = proxy + encodeURIComponent(apiUrl);
+          const response = await fetch(url);
+          if (response.ok) {
+            const data = await response.json();
+            const result = parseMapData(data, mapFile);
+            mapDataCache.set(cacheKey, result);
+            return result;
+          }
+        } catch (proxyError) {
+          // Continue to next proxy
+        }
+      }
+    }
+    
+    // Cache null result to avoid repeated failed requests
+    mapDataCache.set(cacheKey, null);
+    return null;
+  }
+
+  /**
+   * Parse raw map API response into structured data
+   * @param {Object} data - Raw API response
+   * @param {string} mapFile - Original map filename
+   * @returns {Object} Parsed map data
+   */
+  function parseMapData(data, mapFile) {
+    if (!data) return null;
+    
+    return {
+      name: data.title || null,
+      description: data.description || null,
+      imageUrl: data.image ? `${MAP_API_BASE_URL}/${data.image}` : null,
+      mapFile: mapFile,
+      teamNames: {
+        team1: data.netVars?.svar1 || null,
+        team2: data.netVars?.svar2 || null
+      },
+      netVars: data.netVars || null,
+      mods: data.mods || null
+    };
+  }
+
+  /**
+   * Enrich sessions with map data from GameListAssets API
+   * Fetches map data in parallel for all unique maps
+   * @param {Object[]} sessions - Array of parsed sessions
+   * @returns {Promise<void>}
+   */
+  async function enrichSessionsWithMapData(sessions) {
+    // Collect unique map/mod combinations
+    const mapRequests = new Map();
+    
+    for (const session of sessions) {
+      const key = `${session.primaryMod}:${session.mapFile}`;
+      if (!mapRequests.has(key) && session.mapFile) {
+        mapRequests.set(key, {
+          mapFile: session.mapFile,
+          modId: session.primaryMod || '0'
+        });
+      }
+    }
+    
+    // Fetch all map data in parallel
+    const mapDataPromises = Array.from(mapRequests.values()).map(
+      ({ mapFile, modId }) => fetchMapData(mapFile, modId)
+    );
+    
+    await Promise.all(mapDataPromises);
+    
+    // Apply map data to sessions
+    for (const session of sessions) {
+      const cacheKey = `${session.primaryMod}:${session.mapFile}`;
+      const mapData = mapDataCache.get(cacheKey);
+      
+      if (mapData) {
+        session.mapName = mapData.name;
+        session.mapDescription = mapData.description;
+        session.mapImageUrl = mapData.imageUrl;
+        session.teamNames = mapData.teamNames;
+        
+        // Enrich mod names from map data if available
+        if (mapData.mods) {
+          for (const mod of session.mods) {
+            if (mapData.mods[mod.id] && !mod.name) {
+              mod.name = mapData.mods[mod.id].name || mapData.mods[mod.id].workshop_name || null;
+            }
+          }
+        }
+      } else {
+        // Set defaults for non-enriched sessions
+        session.mapName = null;
+        session.mapDescription = null;
+        session.mapImageUrl = null;
+        session.teamNames = { team1: null, team2: null };
+      }
+    }
+  }
+
+  /**
+   * Clear the map data cache
+   */
+  function clearMapCache() {
+    mapDataCache.clear();
   }
 
   /**
@@ -780,15 +954,27 @@ const BZ2API = (function() {
    * @param {Object} options - Options object
    * @param {string} options.proxyUrl - Optional CORS proxy URL prefix
    * @param {string} options.apiUrl - Optional custom API URL
+   * @param {boolean} options.enrichMaps - Enable map data enrichment (default: false)
    * @returns {Promise<Object>} Object containing sessions array and metadata
    */
   async function fetchSessions(options = {}) {
-    const rawData = await fetchRaw(options);
+    const { enrichMaps = false, ...fetchOptions } = options;
+    
+    const rawData = await fetchRaw(fetchOptions);
     
     const sessions = (rawData.GET || []).map(parseSession);
     
     // Sort sessions by ID for consistent ordering across refreshes
     sessions.sort((a, b) => a.id.localeCompare(b.id));
+    
+    // Enrich sessions with map data if opt-in enabled
+    if (enrichMaps) {
+      try {
+        await enrichSessionsWithMapData(sessions);
+      } catch (e) {
+        console.warn('Map enrichment failed:', e.message);
+      }
+    }
     
     const dataCache = buildDataCache(sessions);
     
@@ -796,7 +982,8 @@ const BZ2API = (function() {
       sessions,
       timestamp: new Date().toISOString(),
       rawResponse: rawData,
-      dataCache
+      dataCache,
+      enrichedMaps: enrichMaps
     };
   }
 
@@ -812,9 +999,15 @@ const BZ2API = (function() {
     parsePlayer,
     buildDataCache,
     
+    // Map enrichment (opt-in)
+    fetchMapData,
+    enrichSessionsWithMapData,
+    clearMapCache,
+    
     // Utilities
     decodeBase64Name,
     decodeRakNetGuid,
+    cleanGogId,
     parseGameTypeAndMode,
     parseSessionState,
     parseNATType,
@@ -835,9 +1028,11 @@ const BZ2API = (function() {
     GameType,
     GameMode,
     GameModeNames,
+    VSR_MOD_ID,
     
     // Config
     DEFAULT_API_URL,
+    MAP_API_BASE_URL,
     CORS_PROXIES
   };
 })();
