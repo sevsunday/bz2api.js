@@ -526,7 +526,7 @@ const BZ2API = (function() {
       
       // Status flags
       isLocked: raw.l === 1,
-      hasPassword: raw.k !== 0,
+      hasPassword: raw.k === 1,
       motd: raw.h || null,
       
       // Network
