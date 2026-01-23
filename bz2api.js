@@ -22,6 +22,15 @@ const BZ2API = (function() {
   const VSR_MOD_ID = '1325933293';
 
   // ============================================================================
+  // VSR MAP DATA (BAKED-IN)
+  // ============================================================================
+  // Hand-curated map metadata for VSR maps. Keyed by mapFile name.
+  // Source: https://github.com/sevsunday/bz2vsr/blob/main/data/maps/vsrmaplist.json
+  // See also: data/vsrmaplist.json for the reference file
+  
+  const VSR_MAP_DATA = {"vsr4pool":{"pools":8,"loose":245,"author":"ExE","size":2048,"baseToBase":736},"vsrjocrystalst":{"pools":7,"loose":250,"author":"blue_banana","size":1216,"baseToBase":1024},"vsr310":{"pools":7,"loose":170,"author":"Vearidons","size":1024,"baseToBase":1024},"vsrabundance":{"pools":9,"loose":340,"author":"NA","size":1024,"baseToBase":0},"vsramino":{"pools":7,"loose":180,"author":"{bac}appel","size":1024,"baseToBase":843},"stancientvsr":{"pools":7,"loose":240,"author":"{bac}appel","size":1024,"baseToBase":1153},"staztecvsr":{"pools":7,"loose":180,"author":"{bac}MalevolencE","size":640,"baseToBase":1172},"stancientposts":{"pools":7,"loose":320,"author":"Mortarion","size":1024,"baseToBase":1236},"vsrabuse":{"pools":7,"loose":220,"author":"Vearidons","size":1024,"baseToBase":1032},"vsrauslt":{"pools":7,"loose":205,"author":"Vearidons","size":1024,"baseToBase":1024},"stbarrenvsr":{"pools":7,"loose":240,"author":"{bac}appel","size":1024,"baseToBase":953},"stbowlvsr":{"pools":7,"loose":200,"author":"{bac}appel","size":1024,"baseToBase":1121},"beyond":{"pools":7,"loose":200,"author":"F9bomber","size":2048,"baseToBase":803},"stbolt":{"pools":3,"loose":120,"author":"Feared_1","size":512,"baseToBase":724},"stbadlands":{"pools":7,"loose":190,"author":"{bac}Oppressor","size":512,"baseToBase":826},"chill":{"pools":7,"loose":0,"author":"Stock","size":2048,"baseToBase":1014},"vsrcanyons":{"pools":8,"loose":310,"author":"Feared_1","size":2048,"baseToBase":1876},"vsrcncrt":{"pools":7,"loose":290,"author":"Mortarion","size":1024,"baseToBase":785},"curiosityvsr":{"pools":6,"loose":300,"author":"{bac}Cyber","size":512,"baseToBase":749},"zstcliff":{"pools":7,"loose":390,"author":"ExE","size":2048,"baseToBase":1225},"vsrconsc":{"pools":7,"loose":230,"author":"Vearidons","size":1024,"baseToBase":862},"vsrcrater":{"pools":7,"loose":200,"author":"TimeVirus","size":1024,"baseToBase":895},"cpcauldron":{"pools":8,"loose":-1,"author":"BZ2CP","size":1280,"baseToBase":1152},"vsrcracked":{"pools":7,"loose":240,"author":"Gravey","size":2048,"baseToBase":1274},"vsrcasiusv2":{"pools":7,"loose":270,"author":"ExE","size":1024,"baseToBase":1261},"stdeduxvsr":{"pools":7,"loose":260,"author":"{bac}appel","size":1024,"baseToBase":896},"vsrdomain":{"pools":7,"loose":280,"author":"blue_banana","size":1408,"baseToBase":1296},"vsrdc":{"pools":6,"loose":200,"author":"Laguna","size":1024,"baseToBase":1069},"vsrdpark":{"pools":7,"loose":180,"author":"Vearidons","size":1024,"baseToBase":870},"vsrdream":{"pools":7,"loose":185,"author":"Vearidons","size":1024,"baseToBase":834},"duskvsr":{"pools":7,"loose":-1,"author":"Aegeis","size":2048,"baseToBase":0},"vsrechelon":{"pools":7,"loose":160,"author":"ExE","size":512,"baseToBase":890},"vsreuropa":{"pools":7,"loose":210,"author":"{bac}MalevolencE","size":1024,"baseToBase":975},"vsreuronig":{"pools":7,"loose":210,"author":"{bac}MalevolencE","size":1024,"baseToBase":975},"stvsrexcav":{"pools":7,"loose":240,"author":"Mortarion","size":2048,"baseToBase":1136},"vsrequinox":{"pools":8,"loose":335,"author":"{bac}Oppressor","size":1024,"baseToBase":933},"vsregypt":{"pools":7,"loose":190,"author":"{bac}Oppressor","size":2048,"baseToBase":931},"vsrebola":{"pools":7,"loose":200,"author":"Vearidons","size":1024,"baseToBase":996},"vsrfisle":{"pools":7,"loose":220,"author":"Vearidons","size":896,"baseToBase":1042},"vsrforgot":{"pools":7,"loose":170,"author":"Vearidons","size":1024,"baseToBase":1208},"vsrf12c":{"pools":7,"loose":240,"author":"Vearidons","size":1024,"baseToBase":1024},"vsrflooded":{"pools":7,"loose":230,"author":"Gravey","size":2048,"baseToBase":1409},"vsrfinday":{"pools":7,"loose":210,"author":"spAce","size":1024,"baseToBase":1055},"vsrgarden":{"pools":7,"loose":260,"author":"{bac}appel","size":1024,"baseToBase":1067},"vsrgoldensun":{"pools":7,"loose":200,"author":"BZ2CP","size":2048,"baseToBase":1184},"stgizavsr":{"pools":8,"loose":250,"author":"{bac}appel","size":1024,"baseToBase":928},"hilo":{"pools":6,"loose":-1,"author":"Stock","size":512,"baseToBase":1109},"stbluesvsr":{"pools":7,"loose":280,"author":"{bac}appel","size":1024,"baseToBase":1179},"vsrdhisle":{"pools":7,"loose":195,"author":"Angelwing","size":2048,"baseToBase":1185},"havenvsr":{"pools":8,"loose":280,"author":"{bac}appel","size":1024,"baseToBase":841},"vsrbighilo":{"pools":7,"loose":235,"author":"{bac}appel","size":1024,"baseToBase":1267},"shound":{"pools":6,"loose":305,"author":"F9bomber","size":256,"baseToBase":780},"vsrhubris":{"pools":6,"loose":430,"author":"Gravey","size":720,"baseToBase":897},"heatedbzcc":{"pools":5,"loose":-1,"author":"Aegeis","size":1024,"baseToBase":0},"vsriceage":{"pools":7,"loose":200,"author":"ExE","size":1280,"baseToBase":1229},"stvsriraq":{"pools":7,"loose":255,"author":"Feared_1","size":1024,"baseToBase":1160},"vsrinsula":{"pools":7,"loose":285,"author":"{bac}MalevolencE","size":1280,"baseToBase":857},"vsrv8":{"pools":7,"loose":260,"author":"Vearidons","size":1280,"baseToBase":792},"vsrimpact2":{"pools":7,"loose":-1,"author":"Gravey","size":2048,"baseToBase":1237},"icecoldbzcc":{"pools":8,"loose":-1,"author":"Aegeis","size":2048,"baseToBase":0},"vsrjade":{"pools":7,"loose":250,"author":"{bac}MalevolencE","size":1024,"baseToBase":1082},"vsrknwthy":{"pools":7,"loose":200,"author":"Vearidons","size":1280,"baseToBase":707},"vsrlunar":{"pools":7,"loose":195,"author":"{bac}MalevolencE","size":1280,"baseToBase":1188},"vsrlunix":{"pools":7,"loose":250,"author":"Vearidons","size":640,"baseToBase":1050},"rjx-mars":{"pools":6,"loose":-1,"author":"NA","size":1280,"baseToBase":951},"stmayhem":{"pools":7,"loose":250,"author":"{bac}appel","size":1024,"baseToBase":1192},"stmesavsr":{"pools":7,"loose":280,"author":"{bac}appel","size":1024,"baseToBase":1103},"stmagmavsr":{"pools":6,"loose":250,"author":"{bac}Cyber","size":512,"baseToBase":561},"vsrmardenwarfare":{"pools":6,"loose":210,"author":"blue_banana","size":1152,"baseToBase":0},"vsrmojave":{"pools":7,"loose":175,"author":"{bac}MalevolencE","size":1280,"baseToBase":1088},"vsrmortwasteland":{"pools":7,"loose":290,"author":"Mortarion","size":2048,"baseToBase":996},"vsrmexican":{"pools":7,"loose":190,"author":"Vearidons","size":1024,"baseToBase":1012},"mntnpass":{"pools":7,"loose":320,"author":"BZ2CP","size":1280,"baseToBase":1120},"vsrmoonshrd":{"pools":7,"loose":110,"author":"{uscm}DarkFox","size":1024,"baseToBase":775},"mtntopbzcc":{"pools":7,"loose":-1,"author":"Aegeis","size":1024,"baseToBase":0},"stmurkybzcc":{"pools":6,"loose":-1,"author":"Aegeis","size":2048,"baseToBase":0},"vsrmidwars":{"pools":6,"loose":-1,"author":"ExE","size":1024,"baseToBase":1131},"vsrmiredon":{"pools":5,"loose":220,"author":"ExE","size":640,"baseToBase":838},"vsrnomnld":{"pools":7,"loose":-1,"author":"Angelwing","size":2048,"baseToBase":723},"vsrnigeria":{"pools":7,"loose":200,"author":"Vearidons","size":896,"baseToBase":771},"vsroverlook":{"pools":8,"loose":225,"author":"Feared_1","size":2048,"baseToBase":1280},"vsrogg":{"pools":7,"loose":260,"author":"Vearidons","size":1024,"baseToBase":1073},"vsroldboy":{"pools":7,"loose":190,"author":"NA","size":1024,"baseToBase":960},"vsroxide":{"pools":7,"loose":280,"author":"TimeVirus","size":1024,"baseToBase":1315},"cpoutposts":{"pools":6,"loose":-1,"author":"BZ2CP","size":2048,"baseToBase":836},"vsroasis":{"pools":7,"loose":220,"author":"Gravey","size":2048,"baseToBase":1216},"stphoenixvsr":{"pools":7,"loose":220,"author":"{bac}appel","size":1024,"baseToBase":1089},"stpitbull":{"pools":7,"loose":0,"author":"{bac}appel","size":1024,"baseToBase":768},"zprodigyv2":{"pools":8,"loose":-1,"author":"{bac}MalevolencE","size":640,"baseToBase":1222},"vsrpstrgle":{"pools":7,"loose":265,"author":"NA","size":1024,"baseToBase":448},"vsrpitfall":{"pools":7,"loose":160,"author":"Vearidons","size":1024,"baseToBase":842},"vsrplaza":{"pools":7,"loose":390,"author":"TimeVirus","size":1280,"baseToBase":896},"vsrplus":{"pools":7,"loose":380,"author":"ExE","size":1024,"baseToBase":906},"vsrquarry2":{"pools":7,"loose":270,"author":"Vearidons","size":1280,"baseToBase":1042},"stquagmirevsr":{"pools":7,"loose":200,"author":"{bac}appel","size":1024,"baseToBase":1027},"stredslopevsr":{"pools":7,"loose":255,"author":"{bac}appel","size":1024,"baseToBase":916},"streflexvsr":{"pools":7,"loose":240,"author":"{bac}appel","size":1024,"baseToBase":1180},"strendonvsr":{"pools":8,"loose":190,"author":"{bac}appel","size":1024,"baseToBase":992},"stridges":{"pools":6,"loose":220,"author":"{bac}appel","size":1024,"baseToBase":1108},"vsrredbluff":{"pools":7,"loose":270,"author":"TimeVirus","size":1024,"baseToBase":1732},"vsrrevo":{"pools":7,"loose":260,"author":"Mad-Dog","size":512,"baseToBase":669},"vsrravine":{"pools":7,"loose":250,"author":"{bac}MalevolencE","size":2048,"baseToBase":1505},"vsrremnant":{"pools":7,"loose":160,"author":"{bac}MalevolencE","size":640,"baseToBase":1001},"vsrroyal":{"pools":7,"loose":140,"author":"spAce","size":512,"baseToBase":759},"vsrragnor":{"pools":7,"loose":230,"author":"Vearidons","size":1024,"baseToBase":1090},"vsrrapemas":{"pools":7,"loose":270,"author":"Vearidons","size":1024,"baseToBase":962},"vsrrectal":{"pools":7,"loose":170,"author":"Vearidons","size":896,"baseToBase":730},"starena":{"pools":7,"loose":220,"author":"{bac}appel","size":1024,"baseToBase":862},"stsinister":{"pools":7,"loose":230,"author":"Feared_1","size":1152,"baseToBase":1016},"vsr6way":{"pools":6,"loose":425,"author":"Laguna","size":2048,"baseToBase":832},"vsrsahara":{"pools":7,"loose":200,"author":"{bac}MalevolencE","size":1280,"baseToBase":1242},"vsrsatart":{"pools":7,"loose":220,"author":"Vearidons","size":1024,"baseToBase":771},"vsrscammed":{"pools":7,"loose":180,"author":"Vearidons","size":1024,"baseToBase":1132},"vsrscioncent":{"pools":7,"loose":270,"author":"ExE","size":1280,"baseToBase":1152},"vsrlunast":{"pools":7,"loose":180,"author":"blue_banana","size":1184,"baseToBase":896},"vsrstack":{"pools":7,"loose":260,"author":"Vearidons","size":1024,"baseToBase":896},"vsrswgas":{"pools":6,"loose":120,"author":"Vearidons","size":896,"baseToBase":746},"vsrlanes":{"pools":7,"loose":-1,"author":"TimeVirus","size":1280,"baseToBase":1222},"stonevsr":{"pools":7,"loose":-1,"author":"Aegeis","size":2048,"baseToBase":0},"vsrsnowcentral":{"pools":7,"loose":270,"author":"ExE","size":1280,"baseToBase":1024},"strock":{"pools":7,"loose":-1,"author":"Stock","size":512,"baseToBase":288},"sttempestvsr":{"pools":6,"loose":285,"author":"{bac}appel","size":1024,"baseToBase":1182},"vsrterron":{"pools":7,"loose":280,"author":"{bac}appel","size":1024,"baseToBase":1088},"sttrenchvsr":{"pools":7,"loose":220,"author":"{bac}appel","size":1024,"baseToBase":1093},"vsrsttitan":{"pools":7,"loose":200,"author":"Blade","size":2048,"baseToBase":973},"sttrailvsr":{"pools":7,"loose":310,"author":"Death.System","size":2048,"baseToBase":1449},"vsrthewar":{"pools":7,"loose":220,"author":"Vearidons","size":1024,"baseToBase":758},"vsrthrob":{"pools":7,"loose":165,"author":"Vearidons","size":1024,"baseToBase":960},"vsrtrapped":{"pools":7,"loose":270,"author":"Vearidons","size":1024,"baseToBase":1090},"vsrbridgest":{"pools":7,"loose":250,"author":"blue_banana","size":1024,"baseToBase":1088},"vsrterrace":{"pools":7,"loose":140,"author":"TimeVirus","size":1024,"baseToBase":768},"vsrtransfer":{"pools":7,"loose":0,"author":"Gravey","size":512,"baseToBase":996},"vsrtwinpeaks":{"pools":7,"loose":280,"author":"ExE","size":1024,"baseToBase":1020},"vsrtwohills":{"pools":7,"loose":270,"author":"ExE","size":640,"baseToBase":1109},"vsruxbridge":{"pools":7,"loose":200,"author":"{bac}MalevolencE","size":512,"baseToBase":728},"vsrvort":{"pools":7,"loose":250,"author":"{LoC}StormFront","size":640,"baseToBase":830},"vsrvegan":{"pools":7,"loose":190,"author":"Vearidons","size":1024,"baseToBase":771},"vsrwales":{"pools":7,"loose":235,"author":"{bac}MalevolencE","size":896,"baseToBase":1441},"vsrwout":{"pools":7,"loose":355,"author":"Feared_1","size":2048,"baseToBase":980},"wintervalley":{"pools":7,"loose":205,"author":"Feared_1","size":640,"baseToBase":705},"vsrphazon":{"pools":8,"loose":-1,"author":"Gravey","size":1024,"baseToBase":1152},"vsrrift2":{"pools":7,"loose":0,"author":"Gravey","size":1024,"baseToBase":1875},"vsrtrinity":{"pools":7,"loose":300,"author":"{LoC}StormFront","size":2048,"baseToBase":1200}};
+
+  // ============================================================================
   // CONSTANTS & ENUMS
   // ============================================================================
 
@@ -864,6 +873,81 @@ const BZ2API = (function() {
     mapDataCache.clear();
   }
 
+  // ============================================================================
+  // VSR MAP ENRICHMENT (OPT-IN)
+  // ============================================================================
+
+  /**
+   * Get VSR map data for a given map filename
+   * @param {string} mapFile - Map filename (without extension)
+   * @param {Object} customData - Optional custom VSR map data (keyed by filename)
+   * @returns {Object|null} VSR map data or null if not found
+   */
+  function getVsrMapData(mapFile, customData = null) {
+    if (!mapFile) return null;
+    const dataSource = customData || VSR_MAP_DATA;
+    return dataSource[mapFile] || null;
+  }
+
+  /**
+   * Build VSR map data lookup based on mode
+   * @param {Array} vsrMapData - User-provided VSR map data array
+   * @param {string} vsrMapDataMode - 'replace' or 'merge'
+   * @returns {Object} VSR map data keyed by filename
+   */
+  function buildVsrMapLookup(vsrMapData, vsrMapDataMode) {
+    // Convert user array to keyed object
+    const userData = {};
+    if (Array.isArray(vsrMapData)) {
+      for (const entry of vsrMapData) {
+        if (entry.file) {
+          userData[entry.file] = {
+            pools: entry.pools,
+            loose: entry.loose,
+            author: entry.author,
+            size: entry.size,
+            baseToBase: entry.baseToBase
+          };
+        }
+      }
+    }
+
+    if (vsrMapDataMode === 'replace') {
+      return userData;
+    } else if (vsrMapDataMode === 'merge') {
+      // Merge: baked-in as base, user data overlaid
+      return { ...VSR_MAP_DATA, ...userData };
+    }
+    
+    return VSR_MAP_DATA;
+  }
+
+  /**
+   * Enrich sessions with VSR map metadata
+   * @param {Object[]} sessions - Array of parsed sessions
+   * @param {Object} vsrLookup - VSR map data keyed by filename
+   */
+  function enrichSessionsWithVsrData(sessions, vsrLookup) {
+    for (const session of sessions) {
+      const vsrData = vsrLookup[session.mapFile];
+      
+      if (vsrData) {
+        session.vsrPools = vsrData.pools;
+        session.vsrLoose = vsrData.loose;
+        session.vsrAuthor = vsrData.author;
+        session.vsrMapSize = vsrData.size;
+        session.vsrBaseToBase = vsrData.baseToBase;
+      } else {
+        // Set null defaults for non-VSR maps
+        session.vsrPools = null;
+        session.vsrLoose = null;
+        session.vsrAuthor = null;
+        session.vsrMapSize = null;
+        session.vsrBaseToBase = null;
+      }
+    }
+  }
+
   /**
    * Attempt to fetch from the API, trying CORS proxies if direct fetch fails
    * @param {Object} options - Fetch options
@@ -955,10 +1039,29 @@ const BZ2API = (function() {
    * @param {string} options.proxyUrl - Optional CORS proxy URL prefix
    * @param {string} options.apiUrl - Optional custom API URL
    * @param {boolean} options.enrichMaps - Enable map data enrichment (default: false)
+   * @param {boolean} options.enrichVsrMaps - Enable VSR map metadata enrichment (default: false)
+   * @param {Array} options.vsrMapData - Optional custom VSR map data array
+   * @param {string} options.vsrMapDataMode - Required if vsrMapData provided: 'replace' or 'merge'
    * @returns {Promise<Object>} Object containing sessions array and metadata
    */
   async function fetchSessions(options = {}) {
-    const { enrichMaps = false, ...fetchOptions } = options;
+    const { 
+      enrichMaps = false, 
+      enrichVsrMaps = false,
+      vsrMapData,
+      vsrMapDataMode,
+      ...fetchOptions 
+    } = options;
+    
+    // Validation: vsrMapData requires vsrMapDataMode
+    if (vsrMapData !== undefined && vsrMapDataMode === undefined) {
+      throw new Error('vsrMapDataMode is required when vsrMapData is provided. Use "replace" or "merge".');
+    }
+    
+    // Validate vsrMapDataMode value
+    if (vsrMapDataMode !== undefined && vsrMapDataMode !== 'replace' && vsrMapDataMode !== 'merge') {
+      throw new Error('vsrMapDataMode must be "replace" or "merge".');
+    }
     
     const rawData = await fetchRaw(fetchOptions);
     
@@ -976,6 +1079,14 @@ const BZ2API = (function() {
       }
     }
     
+    // Enrich sessions with VSR map data if opt-in enabled
+    if (enrichVsrMaps) {
+      const vsrLookup = vsrMapData 
+        ? buildVsrMapLookup(vsrMapData, vsrMapDataMode)
+        : VSR_MAP_DATA;
+      enrichSessionsWithVsrData(sessions, vsrLookup);
+    }
+    
     const dataCache = buildDataCache(sessions);
     
     return {
@@ -983,7 +1094,8 @@ const BZ2API = (function() {
       timestamp: new Date().toISOString(),
       rawResponse: rawData,
       dataCache,
-      enrichedMaps: enrichMaps
+      enrichedMaps: enrichMaps,
+      enrichedVsrMaps: enrichVsrMaps
     };
   }
 
@@ -1003,6 +1115,11 @@ const BZ2API = (function() {
     fetchMapData,
     enrichSessionsWithMapData,
     clearMapCache,
+    
+    // VSR map enrichment (opt-in)
+    getVsrMapData,
+    enrichSessionsWithVsrData,
+    buildVsrMapLookup,
     
     // Utilities
     decodeBase64Name,
@@ -1029,6 +1146,7 @@ const BZ2API = (function() {
     GameMode,
     GameModeNames,
     VSR_MOD_ID,
+    VSR_MAP_DATA,
     
     // Config
     DEFAULT_API_URL,

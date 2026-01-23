@@ -693,6 +693,10 @@
         <input type="checkbox" id="enrichMaps" checked onchange="saveMapEnrichmentPref()">
         Map Data
       </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="enrichVsrMaps" checked onchange="saveVsrEnrichmentPref()">
+        VSR Data
+      </label>
       <span id="status" class="status" style="display: none;"></span>
     </div>
   </header>
@@ -841,10 +845,28 @@
       return document.getElementById('enrichMaps').checked;
     }
     
+    // ============ VSR Enrichment Preference ============
+    function loadVsrEnrichmentPref() {
+      const saved = localStorage.getItem('bz2api_enrichVsrMaps');
+      // Default to true (checked) if no preference saved
+      const enrichVsrMaps = saved === null ? true : saved === 'true';
+      document.getElementById('enrichVsrMaps').checked = enrichVsrMaps;
+    }
+    
+    function saveVsrEnrichmentPref() {
+      const enrichVsrMaps = document.getElementById('enrichVsrMaps').checked;
+      localStorage.setItem('bz2api_enrichVsrMaps', enrichVsrMaps.toString());
+    }
+    
+    function getEnrichVsrMapsOption() {
+      return document.getElementById('enrichVsrMaps').checked;
+    }
+    
     // Initialize on load
     document.addEventListener('DOMContentLoaded', async () => {
       initSplitters();
       loadMapEnrichmentPref();
+      loadVsrEnrichmentPref();
       await initJsonExplorer();
       fetchData();
     });
@@ -1101,6 +1123,32 @@
               </div>
             </div>
             
+            ${session.vsrPools !== null ? `
+            <div class="section-title" style="margin-top: 16px;">VSR Map Data</div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="detail-label">Pools</div>
+                <div class="detail-value">${session.vsrPools}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Loose Scrap</div>
+                <div class="detail-value">${session.vsrLoose === -1 ? 'Unknown' : session.vsrLoose}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Map Author</div>
+                <div class="detail-value">${escapeHtml(session.vsrAuthor) || 'Unknown'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Map Size</div>
+                <div class="detail-value">${session.vsrMapSize}×${session.vsrMapSize}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Base-to-Base</div>
+                <div class="detail-value">${session.vsrBaseToBase || 'N/A'}</div>
+              </div>
+            </div>
+            ` : ''}
+            
             <details class="raw-toggle" onclick="event.stopPropagation()">
               <summary>View Parsed Data</summary>
               <div class="raw-json">
@@ -1233,10 +1281,12 @@
       const btn = document.getElementById('fetchBtn');
       btn.disabled = true;
       const enrichMaps = getEnrichMapsOption();
-      setStatus(enrichMaps ? 'Fetching + enriching...' : 'Fetching...', 'loading');
+      const enrichVsrMaps = getEnrichVsrMapsOption();
+      const isEnriching = enrichMaps || enrichVsrMaps;
+      setStatus(isEnriching ? 'Fetching + enriching...' : 'Fetching...', 'loading');
       
       try {
-        const result = await BZ2API.fetchSessions({ enrichMaps });
+        const result = await BZ2API.fetchSessions({ enrichMaps, enrichVsrMaps });
         
         // Store result for session selection feature
         lastFetchResult = result;

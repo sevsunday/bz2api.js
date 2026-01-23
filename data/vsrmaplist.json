@@ -1,0 +1,1146 @@
+[
+  {
+    "file": "vsr4pool",
+    "pools": 8,
+    "loose": 245,
+    "author": "ExE",
+    "size": 2048,
+    "baseToBase": 736
+  },
+  {
+    "file": "vsrjocrystalst",
+    "pools": 7,
+    "loose": 250,
+    "author": "blue_banana",
+    "size": 1216,
+    "baseToBase": 1024
+  },
+  {
+    "file": "vsr310",
+    "pools": 7,
+    "loose": 170,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1024
+  },
+  {
+    "file": "vsrabundance",
+    "pools": 9,
+    "loose": 340,
+    "author": "NA",
+    "size": 1024,
+    "baseToBase": 0
+  },
+  {
+    "file": "vsramino",
+    "pools": 7,
+    "loose": 180,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 843
+  },
+  {
+    "file": "stancientvsr",
+    "pools": 7,
+    "loose": 240,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1153
+  },
+  {
+    "file": "staztecvsr",
+    "pools": 7,
+    "loose": 180,
+    "author": "{bac}MalevolencE",
+    "size": 640,
+    "baseToBase": 1172
+  },
+  {
+    "file": "stancientposts",
+    "pools": 7,
+    "loose": 320,
+    "author": "Mortarion",
+    "size": 1024,
+    "baseToBase": 1236
+  },
+  {
+    "file": "vsrabuse",
+    "pools": 7,
+    "loose": 220,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1032
+  },
+  {
+    "file": "vsrauslt",
+    "pools": 7,
+    "loose": 205,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1024
+  },
+  {
+    "file": "stbarrenvsr",
+    "pools": 7,
+    "loose": 240,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 953
+  },
+  {
+    "file": "stbowlvsr",
+    "pools": 7,
+    "loose": 200,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1121
+  },
+  {
+    "file": "beyond",
+    "pools": 7,
+    "loose": 200,
+    "author": "F9bomber",
+    "size": 2048,
+    "baseToBase": 803
+  },
+  {
+    "file": "stbolt",
+    "pools": 3,
+    "loose": 120,
+    "author": "Feared_1",
+    "size": 512,
+    "baseToBase": 724
+  },
+  {
+    "file": "stbadlands",
+    "pools": 7,
+    "loose": 190,
+    "author": "{bac}Oppressor",
+    "size": 512,
+    "baseToBase": 826
+  },
+  {
+    "file": "chill",
+    "pools": 7,
+    "loose": 0,
+    "author": "Stock",
+    "size": 2048,
+    "baseToBase": 1014
+  },
+  {
+    "file": "vsrcanyons",
+    "pools": 8,
+    "loose": 310,
+    "author": "Feared_1",
+    "size": 2048,
+    "baseToBase": 1876
+  },
+  {
+    "file": "vsrcncrt",
+    "pools": 7,
+    "loose": 290,
+    "author": "Mortarion",
+    "size": 1024,
+    "baseToBase": 785
+  },
+  {
+    "file": "curiosityvsr",
+    "pools": 6,
+    "loose": 300,
+    "author": "{bac}Cyber",
+    "size": 512,
+    "baseToBase": 749
+  },
+  {
+    "file": "zstcliff",
+    "pools": 7,
+    "loose": 390,
+    "author": "ExE",
+    "size": 2048,
+    "baseToBase": 1225
+  },
+  {
+    "file": "vsrconsc",
+    "pools": 7,
+    "loose": 230,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 862
+  },
+  {
+    "file": "vsrcrater",
+    "pools": 7,
+    "loose": 200,
+    "author": "TimeVirus",
+    "size": 1024,
+    "baseToBase": 895
+  },
+  {
+    "file": "cpcauldron",
+    "pools": 8,
+    "loose": -1,
+    "author": "BZ2CP",
+    "size": 1280,
+    "baseToBase": 1152
+  },
+  {
+    "file": "vsrcracked",
+    "pools": 7,
+    "loose": 240,
+    "author": "Gravey",
+    "size": 2048,
+    "baseToBase": 1274
+  },
+  {
+    "file": "vsrcasiusv2",
+    "pools": 7,
+    "loose": 270,
+    "author": "ExE",
+    "size": 1024,
+    "baseToBase": 1261
+  },
+  {
+    "file": "stdeduxvsr",
+    "pools": 7,
+    "loose": 260,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 896
+  },
+  {
+    "file": "vsrdomain",
+    "pools": 7,
+    "loose": 280,
+    "author": "blue_banana",
+    "size": 1408,
+    "baseToBase": 1296
+  },
+  {
+    "file": "vsrdc",
+    "pools": 6,
+    "loose": 200,
+    "author": "Laguna",
+    "size": 1024,
+    "baseToBase": 1069
+  },
+  {
+    "file": "vsrdpark",
+    "pools": 7,
+    "loose": 180,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 870
+  },
+  {
+    "file": "vsrdream",
+    "pools": 7,
+    "loose": 185,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 834
+  },
+  {
+    "file": "duskvsr",
+    "pools": 7,
+    "loose": -1,
+    "author": "Aegeis",
+    "size": 2048,
+    "baseToBase": 0
+  },
+  {
+    "file": "vsrechelon",
+    "pools": 7,
+    "loose": 160,
+    "author": "ExE",
+    "size": 512,
+    "baseToBase": 890
+  },
+  {
+    "file": "vsreuropa",
+    "pools": 7,
+    "loose": 210,
+    "author": "{bac}MalevolencE",
+    "size": 1024,
+    "baseToBase": 975
+  },
+  {
+    "file": "vsreuronig",
+    "pools": 7,
+    "loose": 210,
+    "author": "{bac}MalevolencE",
+    "size": 1024,
+    "baseToBase": 975
+  },
+  {
+    "file": "stvsrexcav",
+    "pools": 7,
+    "loose": 240,
+    "author": "Mortarion",
+    "size": 2048,
+    "baseToBase": 1136
+  },
+  {
+    "file": "vsrequinox",
+    "pools": 8,
+    "loose": 335,
+    "author": "{bac}Oppressor",
+    "size": 1024,
+    "baseToBase": 933
+  },
+  {
+    "file": "vsregypt",
+    "pools": 7,
+    "loose": 190,
+    "author": "{bac}Oppressor",
+    "size": 2048,
+    "baseToBase": 931
+  },
+  {
+    "file": "vsrebola",
+    "pools": 7,
+    "loose": 200,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 996
+  },
+  {
+    "file": "vsrfisle",
+    "pools": 7,
+    "loose": 220,
+    "author": "Vearidons",
+    "size": 896,
+    "baseToBase": 1042
+  },
+  {
+    "file": "vsrforgot",
+    "pools": 7,
+    "loose": 170,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1208
+  },
+  {
+    "file": "vsrf12c",
+    "pools": 7,
+    "loose": 240,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1024
+  },
+  {
+    "file": "vsrflooded",
+    "pools": 7,
+    "loose": 230,
+    "author": "Gravey",
+    "size": 2048,
+    "baseToBase": 1409
+  },
+  {
+    "file": "vsrfinday",
+    "pools": 7,
+    "loose": 210,
+    "author": "spAce",
+    "size": 1024,
+    "baseToBase": 1055
+  },
+  {
+    "file": "vsrgarden",
+    "pools": 7,
+    "loose": 260,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1067
+  },
+  {
+    "file": "vsrgoldensun",
+    "pools": 7,
+    "loose": 200,
+    "author": "BZ2CP",
+    "size": 2048,
+    "baseToBase": 1184
+  },
+  {
+    "file": "stgizavsr",
+    "pools": 8,
+    "loose": 250,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 928
+  },
+  {
+    "file": "hilo",
+    "pools": 6,
+    "loose": -1,
+    "author": "Stock",
+    "size": 512,
+    "baseToBase": 1109
+  },
+  {
+    "file": "stbluesvsr",
+    "pools": 7,
+    "loose": 280,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1179
+  },
+  {
+    "file": "vsrdhisle",
+    "pools": 7,
+    "loose": 195,
+    "author": "Angelwing",
+    "size": 2048,
+    "baseToBase": 1185
+  },
+  {
+    "file": "havenvsr",
+    "pools": 8,
+    "loose": 280,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 841
+  },
+  {
+    "file": "vsrbighilo",
+    "pools": 7,
+    "loose": 235,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1267
+  },
+  {
+    "file": "shound",
+    "pools": 6,
+    "loose": 305,
+    "author": "F9bomber",
+    "size": 256,
+    "baseToBase": 780
+  },
+  {
+    "file": "vsrhubris",
+    "pools": 6,
+    "loose": 430,
+    "author": "Gravey",
+    "size": 720,
+    "baseToBase": 897
+  },
+  {
+    "file": "heatedbzcc",
+    "pools": 5,
+    "loose": -1,
+    "author": "Aegeis",
+    "size": 1024,
+    "baseToBase": 0
+  },
+  {
+    "file": "vsriceage",
+    "pools": 7,
+    "loose": 200,
+    "author": "ExE",
+    "size": 1280,
+    "baseToBase": 1229
+  },
+  {
+    "file": "stvsriraq",
+    "pools": 7,
+    "loose": 255,
+    "author": "Feared_1",
+    "size": 1024,
+    "baseToBase": 1160
+  },
+  {
+    "file": "vsrinsula",
+    "pools": 7,
+    "loose": 285,
+    "author": "{bac}MalevolencE",
+    "size": 1280,
+    "baseToBase": 857
+  },
+  {
+    "file": "vsrv8",
+    "pools": 7,
+    "loose": 260,
+    "author": "Vearidons",
+    "size": 1280,
+    "baseToBase": 792
+  },
+  {
+    "file": "vsrimpact2",
+    "pools": 7,
+    "loose": -1,
+    "author": "Gravey",
+    "size": 2048,
+    "baseToBase": 1237
+  },
+  {
+    "file": "icecoldbzcc",
+    "pools": 8,
+    "loose": -1,
+    "author": "Aegeis",
+    "size": 2048,
+    "baseToBase": 0
+  },
+  {
+    "file": "vsrjade",
+    "pools": 7,
+    "loose": 250,
+    "author": "{bac}MalevolencE",
+    "size": 1024,
+    "baseToBase": 1082
+  },
+  {
+    "file": "vsrknwthy",
+    "pools": 7,
+    "loose": 200,
+    "author": "Vearidons",
+    "size": 1280,
+    "baseToBase": 707
+  },
+  {
+    "file": "vsrlunar",
+    "pools": 7,
+    "loose": 195,
+    "author": "{bac}MalevolencE",
+    "size": 1280,
+    "baseToBase": 1188
+  },
+  {
+    "file": "vsrlunix",
+    "pools": 7,
+    "loose": 250,
+    "author": "Vearidons",
+    "size": 640,
+    "baseToBase": 1050
+  },
+  {
+    "file": "rjx-mars",
+    "pools": 6,
+    "loose": -1,
+    "author": "NA",
+    "size": 1280,
+    "baseToBase": 951
+  },
+  {
+    "file": "stmayhem",
+    "pools": 7,
+    "loose": 250,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1192
+  },
+  {
+    "file": "stmesavsr",
+    "pools": 7,
+    "loose": 280,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1103
+  },
+  {
+    "file": "stmagmavsr",
+    "pools": 6,
+    "loose": 250,
+    "author": "{bac}Cyber",
+    "size": 512,
+    "baseToBase": 561
+  },
+  {
+    "file": "vsrmardenwarfare",
+    "pools": 6,
+    "loose": 210,
+    "author": "blue_banana",
+    "size": 1152,
+    "baseToBase": 0
+  },
+  {
+    "file": "vsrmojave",
+    "pools": 7,
+    "loose": 175,
+    "author": "{bac}MalevolencE",
+    "size": 1280,
+    "baseToBase": 1088
+  },
+  {
+    "file": "vsrmortwasteland",
+    "pools": 7,
+    "loose": 290,
+    "author": "Mortarion",
+    "size": 2048,
+    "baseToBase": 996
+  },
+  {
+    "file": "vsrmexican",
+    "pools": 7,
+    "loose": 190,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1012
+  },
+  {
+    "file": "mntnpass",
+    "pools": 7,
+    "loose": 320,
+    "author": "BZ2CP",
+    "size": 1280,
+    "baseToBase": 1120
+  },
+  {
+    "file": "vsrmoonshrd",
+    "pools": 7,
+    "loose": 110,
+    "author": "{uscm}DarkFox",
+    "size": 1024,
+    "baseToBase": 775
+  },
+  {
+    "file": "mtntopbzcc",
+    "pools": 7,
+    "loose": -1,
+    "author": "Aegeis",
+    "size": 1024,
+    "baseToBase": 0
+  },
+  {
+    "file": "stmurkybzcc",
+    "pools": 6,
+    "loose": -1,
+    "author": "Aegeis",
+    "size": 2048,
+    "baseToBase": 0
+  },
+  {
+    "file": "vsrmidwars",
+    "pools": 6,
+    "loose": -1,
+    "author": "ExE",
+    "size": 1024,
+    "baseToBase": 1131
+  },
+  {
+    "file": "vsrmiredon",
+    "pools": 5,
+    "loose": 220,
+    "author": "ExE",
+    "size": 640,
+    "baseToBase": 838
+  },
+  {
+    "file": "vsrnomnld",
+    "pools": 7,
+    "loose": -1,
+    "author": "Angelwing",
+    "size": 2048,
+    "baseToBase": 723
+  },
+  {
+    "file": "vsrnigeria",
+    "pools": 7,
+    "loose": 200,
+    "author": "Vearidons",
+    "size": 896,
+    "baseToBase": 771
+  },
+  {
+    "file": "vsroverlook",
+    "pools": 8,
+    "loose": 225,
+    "author": "Feared_1",
+    "size": 2048,
+    "baseToBase": 1280
+  },
+  {
+    "file": "vsrogg",
+    "pools": 7,
+    "loose": 260,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1073
+  },
+  {
+    "file": "vsroldboy",
+    "pools": 7,
+    "loose": 190,
+    "author": "NA",
+    "size": 1024,
+    "baseToBase": 960
+  },
+  {
+    "file": "vsroxide",
+    "pools": 7,
+    "loose": 280,
+    "author": "TimeVirus",
+    "size": 1024,
+    "baseToBase": 1315
+  },
+  {
+    "file": "cpoutposts",
+    "pools": 6,
+    "loose": -1,
+    "author": "BZ2CP",
+    "size": 2048,
+    "baseToBase": 836
+  },
+  {
+    "file": "vsroasis",
+    "pools": 7,
+    "loose": 220,
+    "author": "Gravey",
+    "size": 2048,
+    "baseToBase": 1216
+  },
+  {
+    "file": "stphoenixvsr",
+    "pools": 7,
+    "loose": 220,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1089
+  },
+  {
+    "file": "stpitbull",
+    "pools": 7,
+    "loose": 0,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 768
+  },
+  {
+    "file": "zprodigyv2",
+    "pools": 8,
+    "loose": -1,
+    "author": "{bac}MalevolencE",
+    "size": 640,
+    "baseToBase": 1222
+  },
+  {
+    "file": "vsrpstrgle",
+    "pools": 7,
+    "loose": 265,
+    "author": "NA",
+    "size": 1024,
+    "baseToBase": 448
+  },
+  {
+    "file": "vsrpitfall",
+    "pools": 7,
+    "loose": 160,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 842
+  },
+  {
+    "file": "vsrplaza",
+    "pools": 7,
+    "loose": 390,
+    "author": "TimeVirus",
+    "size": 1280,
+    "baseToBase": 896
+  },
+  {
+    "file": "vsrplus",
+    "pools": 7,
+    "loose": 380,
+    "author": "ExE",
+    "size": 1024,
+    "baseToBase": 906
+  },
+  {
+    "file": "vsrquarry2",
+    "pools": 7,
+    "loose": 270,
+    "author": "Vearidons",
+    "size": 1280,
+    "baseToBase": 1042
+  },
+  {
+    "file": "stquagmirevsr",
+    "pools": 7,
+    "loose": 200,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1027
+  },
+  {
+    "file": "stredslopevsr",
+    "pools": 7,
+    "loose": 255,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 916
+  },
+  {
+    "file": "streflexvsr",
+    "pools": 7,
+    "loose": 240,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1180
+  },
+  {
+    "file": "strendonvsr",
+    "pools": 8,
+    "loose": 190,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 992
+  },
+  {
+    "file": "stridges",
+    "pools": 6,
+    "loose": 220,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1108
+  },
+  {
+    "file": "vsrredbluff",
+    "pools": 7,
+    "loose": 270,
+    "author": "TimeVirus",
+    "size": 1024,
+    "baseToBase": 1732
+  },
+  {
+    "file": "vsrrevo",
+    "pools": 7,
+    "loose": 260,
+    "author": "Mad-Dog",
+    "size": 512,
+    "baseToBase": 669
+  },
+  {
+    "file": "vsrravine",
+    "pools": 7,
+    "loose": 250,
+    "author": "{bac}MalevolencE",
+    "size": 2048,
+    "baseToBase": 1505
+  },
+  {
+    "file": "vsrremnant",
+    "pools": 7,
+    "loose": 160,
+    "author": "{bac}MalevolencE",
+    "size": 640,
+    "baseToBase": 1001
+  },
+  {
+    "file": "vsrroyal",
+    "pools": 7,
+    "loose": 140,
+    "author": "spAce",
+    "size": 512,
+    "baseToBase": 759
+  },
+  {
+    "file": "vsrragnor",
+    "pools": 7,
+    "loose": 230,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1090
+  },
+  {
+    "file": "vsrrapemas",
+    "pools": 7,
+    "loose": 270,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 962
+  },
+  {
+    "file": "vsrrectal",
+    "pools": 7,
+    "loose": 170,
+    "author": "Vearidons",
+    "size": 896,
+    "baseToBase": 730
+  },
+  {
+    "file": "starena",
+    "pools": 7,
+    "loose": 220,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 862
+  },
+  {
+    "file": "stsinister",
+    "pools": 7,
+    "loose": 230,
+    "author": "Feared_1",
+    "size": 1152,
+    "baseToBase": 1016
+  },
+  {
+    "file": "vsr6way",
+    "pools": 6,
+    "loose": 425,
+    "author": "Laguna",
+    "size": 2048,
+    "baseToBase": 832
+  },
+  {
+    "file": "vsrsahara",
+    "pools": 7,
+    "loose": 200,
+    "author": "{bac}MalevolencE",
+    "size": 1280,
+    "baseToBase": 1242
+  },
+  {
+    "file": "vsrsatart",
+    "pools": 7,
+    "loose": 220,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 771
+  },
+  {
+    "file": "vsrscammed",
+    "pools": 7,
+    "loose": 180,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1132
+  },
+  {
+    "file": "vsrscioncent",
+    "pools": 7,
+    "loose": 270,
+    "author": "ExE",
+    "size": 1280,
+    "baseToBase": 1152
+  },
+  {
+    "file": "vsrlunast",
+    "pools": 7,
+    "loose": 180,
+    "author": "blue_banana",
+    "size": 1184,
+    "baseToBase": 896
+  },
+  {
+    "file": "vsrstack",
+    "pools": 7,
+    "loose": 260,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 896
+  },
+  {
+    "file": "vsrswgas",
+    "pools": 6,
+    "loose": 120,
+    "author": "Vearidons",
+    "size": 896,
+    "baseToBase": 746
+  },
+  {
+    "file": "vsrlanes",
+    "pools": 7,
+    "loose": -1,
+    "author": "TimeVirus",
+    "size": 1280,
+    "baseToBase": 1222
+  },
+  {
+    "file": "stonevsr",
+    "pools": 7,
+    "loose": -1,
+    "author": "Aegeis",
+    "size": 2048,
+    "baseToBase": 0
+  },
+  {
+    "file": "vsrsnowcentral",
+    "pools": 7,
+    "loose": 270,
+    "author": "ExE",
+    "size": 1280,
+    "baseToBase": 1024
+  },
+  {
+    "file": "strock",
+    "pools": 7,
+    "loose": -1,
+    "author": "Stock",
+    "size": 512,
+    "baseToBase": 288
+  },
+  {
+    "file": "sttempestvsr",
+    "pools": 6,
+    "loose": 285,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1182
+  },
+  {
+    "file": "vsrterron",
+    "pools": 7,
+    "loose": 280,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1088
+  },
+  {
+    "file": "sttrenchvsr",
+    "pools": 7,
+    "loose": 220,
+    "author": "{bac}appel",
+    "size": 1024,
+    "baseToBase": 1093
+  },
+  {
+    "file": "vsrsttitan",
+    "pools": 7,
+    "loose": 200,
+    "author": "Blade",
+    "size": 2048,
+    "baseToBase": 973
+  },
+  {
+    "file": "sttrailvsr",
+    "pools": 7,
+    "loose": 310,
+    "author": "Death.System",
+    "size": 2048,
+    "baseToBase": 1449
+  },
+  {
+    "file": "vsrthewar",
+    "pools": 7,
+    "loose": 220,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 758
+  },
+  {
+    "file": "vsrthrob",
+    "pools": 7,
+    "loose": 165,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 960
+  },
+  {
+    "file": "vsrtrapped",
+    "pools": 7,
+    "loose": 270,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 1090
+  },
+  {
+    "file": "vsrbridgest",
+    "pools": 7,
+    "loose": 250,
+    "author": "blue_banana",
+    "size": 1024,
+    "baseToBase": 1088
+  },
+  {
+    "file": "vsrterrace",
+    "pools": 7,
+    "loose": 140,
+    "author": "TimeVirus",
+    "size": 1024,
+    "baseToBase": 768
+  },
+  {
+    "file": "vsrtransfer",
+    "pools": 7,
+    "loose": 0,
+    "author": "Gravey",
+    "size": 512,
+    "baseToBase": 996
+  },
+  {
+    "file": "vsrtwinpeaks",
+    "pools": 7,
+    "loose": 280,
+    "author": "ExE",
+    "size": 1024,
+    "baseToBase": 1020
+  },
+  {
+    "file": "vsrtwohills",
+    "pools": 7,
+    "loose": 270,
+    "author": "ExE",
+    "size": 640,
+    "baseToBase": 1109
+  },
+  {
+    "file": "vsruxbridge",
+    "pools": 7,
+    "loose": 200,
+    "author": "{bac}MalevolencE",
+    "size": 512,
+    "baseToBase": 728
+  },
+  {
+    "file": "vsrvort",
+    "pools": 7,
+    "loose": 250,
+    "author": "{LoC}StormFront",
+    "size": 640,
+    "baseToBase": 830
+  },
+  {
+    "file": "vsrvegan",
+    "pools": 7,
+    "loose": 190,
+    "author": "Vearidons",
+    "size": 1024,
+    "baseToBase": 771
+  },
+  {
+    "file": "vsrwales",
+    "pools": 7,
+    "loose": 235,
+    "author": "{bac}MalevolencE",
+    "size": 896,
+    "baseToBase": 1441
+  },
+  {
+    "file": "vsrwout",
+    "pools": 7,
+    "loose": 355,
+    "author": "Feared_1",
+    "size": 2048,
+    "baseToBase": 980
+  },
+  {
+    "file": "wintervalley",
+    "pools": 7,
+    "loose": 205,
+    "author": "Feared_1",
+    "size": 640,
+    "baseToBase": 705
+  },
+  {
+    "file": "vsrphazon",
+    "pools": 8,
+    "loose": -1,
+    "author": "Gravey",
+    "size": 1024,
+    "baseToBase": 1152
+  },
+  {
+    "file": "vsrrift2",
+    "pools": 7,
+    "loose": 0,
+    "author": "Gravey",
+    "size": 1024,
+    "baseToBase": 1875
+  },
+  {
+    "file": "vsrtrinity",
+    "pools": 7,
+    "loose": 300,
+    "author": "{LoC}StormFront",
+    "size": 2048,
+    "baseToBase": 1200
+  }
+]

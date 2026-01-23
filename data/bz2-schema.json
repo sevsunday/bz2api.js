@@ -35,6 +35,12 @@
   "sessions.*.teamNames.team1": "Custom name for Team 1 (e.g., 'ISDF', 'Naughty')",
   "sessions.*.teamNames.team2": "Custom name for Team 2 (e.g., 'Scions', 'Nice')",
   
+  "sessions.*.vsrPools": "Number of biometal pools on this map (requires enrichVsrMaps: true, null if not a known VSR map)",
+  "sessions.*.vsrLoose": "Amount of loose scrap on this map (-1 = unknown, requires enrichVsrMaps: true)",
+  "sessions.*.vsrAuthor": "Creator of this map (requires enrichVsrMaps: true)",
+  "sessions.*.vsrMapSize": "Map dimensions in game units (e.g., 1024 = 1024x1024, requires enrichVsrMaps: true)",
+  "sessions.*.vsrBaseToBase": "Distance between starting bases in game units (0 = overlapping/unknown, requires enrichVsrMaps: true)",
+  
   "sessions.*.players": "Array of players currently in the session",
   "sessions.*.players.*": "Individual player object",
   "sessions.*.players.*.name": "Player's in-game display name (decoded from Base64/cp1252)",

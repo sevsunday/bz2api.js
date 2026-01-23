@@ -11,6 +11,7 @@ A zero-dependency JavaScript library for fetching and parsing multiplayer sessio
 - **GOG ID cleaning** - Automatically masks high bits from GOG Galaxy IDs
 - **VSR detection** - Identifies games using the Vet Strategy Recycler balance mod
 - **Map data enrichment** - Opt-in integration with GameListAssets API for map names, descriptions, images, and team names
+- **VSR map enrichment** - Opt-in baked-in metadata for 143 VSR maps (pools, loose scrap, author, size)
 - **Data cache** - Consolidated cache of unique players and mods across all sessions
 
 ## Quick Start
@@ -43,6 +44,23 @@ A zero-dependency JavaScript library for fetching and parsing multiplayer sessio
 </script>
 ```
 
+### With VSR Map Enrichment
+
+```html
+<script src="bz2api.js"></script>
+<script>
+  BZ2API.fetchSessions({ enrichVsrMaps: true }).then(result => {
+    result.sessions.forEach(session => {
+      console.log(session.vsrPools);      // 7 (biometal pools)
+      console.log(session.vsrLoose);      // 250 (loose scrap)
+      console.log(session.vsrAuthor);     // "ExE"
+      console.log(session.vsrMapSize);    // 1024 (map size in game units)
+      console.log(session.vsrBaseToBase); // 843 (distance between bases)
+    });
+  });
+</script>
+```
+
 ### Node.js
 
 ```javascript
@@ -65,9 +83,24 @@ const result = await BZ2API.fetchSessions({
   proxyUrl: 'https://corsproxy.io/?',  // Optional: specific CORS proxy
   apiUrl: 'http://custom-api.com/',     // Optional: custom API endpoint
   bustCache: true,                       // Optional: add cache-busting param (default: true)
-  enrichMaps: false                      // Optional: fetch map metadata (default: false)
+  enrichMaps: false,                     // Optional: fetch map metadata (default: false)
+  enrichVsrMaps: false,                  // Optional: add VSR map data (default: false)
+  vsrMapData: [...],                     // Optional: custom VSR map data array
+  vsrMapDataMode: 'merge'                // Required if vsrMapData provided: 'replace' or 'merge'
 });
 ```
+
+**VSR Map Data Options:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `enrichVsrMaps` | boolean | Enable VSR map metadata enrichment (default: false) |
+| `vsrMapData` | Array | Custom VSR map data to use instead of/with baked-in data |
+| `vsrMapDataMode` | string | Required when `vsrMapData` provided: `'replace'` or `'merge'` |
+
+**Mode Behavior:**
+- `'replace'` - Only use user-provided data, ignore baked-in
+- `'merge'` - Combine baked-in + user data (user wins on filename conflicts)
 
 **Returns:**
 ```javascript
@@ -79,7 +112,8 @@ const result = await BZ2API.fetchSessions({
     players: {...},          // Unique players keyed by ID
     mods: {...}              // Unique mods keyed by ID
   },
-  enrichedMaps: false        // Whether map enrichment was used
+  enrichedMaps: false,       // Whether map enrichment was used
+  enrichedVsrMaps: false     // Whether VSR map enrichment was used
 }
 ```
 
@@ -144,6 +178,41 @@ Clears the in-memory map data cache.
 BZ2API.clearMapCache();
 ```
 
+### VSR Map Enrichment Functions
+
+#### `getVsrMapData(mapFile, customData)`
+
+Retrieves VSR map data for a given map filename.
+
+```javascript
+const vsrData = BZ2API.getVsrMapData('vsramino');
+// Returns: { pools: 7, loose: 180, author: "{bac}appel", size: 1024, baseToBase: 843 }
+
+// With custom data
+const vsrData = BZ2API.getVsrMapData('myCustomMap', myCustomDataLookup);
+```
+
+#### `enrichSessionsWithVsrData(sessions, vsrLookup)`
+
+Enriches an array of sessions with VSR map data (mutates sessions in place).
+
+```javascript
+const sessions = rawData.GET.map(BZ2API.parseSession);
+BZ2API.enrichSessionsWithVsrData(sessions, BZ2API.VSR_MAP_DATA);
+```
+
+#### `buildVsrMapLookup(vsrMapData, vsrMapDataMode)`
+
+Builds a VSR map lookup from user-provided data array.
+
+```javascript
+// Replace mode: only use custom data
+const lookup = BZ2API.buildVsrMapLookup(myMaps, 'replace');
+
+// Merge mode: combine with baked-in data
+const lookup = BZ2API.buildVsrMapLookup(myMaps, 'merge');
+```
+
 ### Utility Functions
 
 | Function | Description |
@@ -177,6 +246,7 @@ BZ2API.GameType         // { ALL: 0, DEATHMATCH: 1, STRATEGY: 2 }
 BZ2API.GameMode         // { DM: 1, TEAM_DM: 2, KOTH: 3, MPI: 13, ... }
 BZ2API.GameModeNames    // { 1: 'Deathmatch', 13: 'MPI', ... }
 BZ2API.VSR_MOD_ID       // '1325933293' - Vet Strategy Recycler mod ID
+BZ2API.VSR_MAP_DATA     // Baked-in VSR map metadata (143 maps)
 BZ2API.DEFAULT_API_URL  // Rebellion lobby server URL
 BZ2API.MAP_API_BASE_URL // GameListAssets API base URL
 BZ2API.CORS_PROXIES     // Array of fallback CORS proxies
@@ -223,6 +293,13 @@ BZ2API.CORS_PROXIES     // Array of fallback CORS proxies
     team1: "ISDF",
     team2: "Scion"
   },
+
+  // VSR Map Enrichment (when enrichVsrMaps: true)
+  vsrPools: 7,                         // Number of biometal pools (or null)
+  vsrLoose: 180,                       // Loose scrap amount (or null, -1 = unknown)
+  vsrAuthor: "{bac}appel",             // Map author (or null)
+  vsrMapSize: 1024,                    // Map size in game units (or null)
+  vsrBaseToBase: 843,                  // Distance between bases (or null)
 
   // Players
   players: [...],                      // Array of player objects
@@ -410,6 +487,45 @@ When `enrichMaps: true` is passed to `fetchSessions()`, the library fetches addi
 - Mod names (for Workshop items)
 
 Map data is cached in memory to avoid redundant API calls. Use `clearMapCache()` to clear.
+
+### VSR Map Data Enrichment
+
+When `enrichVsrMaps: true` is passed to `fetchSessions()`, the library adds metadata from a baked-in dataset of 143 VSR maps.
+
+**Source:** [sevsunday/bz2vsr](https://github.com/sevsunday/bz2vsr/blob/main/data/maps/vsrmaplist.json)
+
+**Provides:**
+- `vsrPools` - Number of biometal pools on the map
+- `vsrLoose` - Amount of loose scrap (-1 indicates unknown)
+- `vsrAuthor` - Map creator
+- `vsrMapSize` - Map dimensions in game units
+- `vsrBaseToBase` - Distance between starting bases
+
+**Custom Data Support:**
+
+You can provide your own VSR map data to extend or replace the baked-in data:
+
+```javascript
+const myCustomMaps = [
+  { file: 'mycustommap', pools: 8, loose: 300, author: 'Me', size: 1024, baseToBase: 900 }
+];
+
+// Replace mode: only use your data
+await BZ2API.fetchSessions({
+  enrichVsrMaps: true,
+  vsrMapData: myCustomMaps,
+  vsrMapDataMode: 'replace'
+});
+
+// Merge mode: combine with baked-in (your data wins conflicts)
+await BZ2API.fetchSessions({
+  enrichVsrMaps: true,
+  vsrMapData: myCustomMaps,
+  vsrMapDataMode: 'merge'
+});
+```
+
+**Note:** The `vsrMapDataMode` parameter is required when `vsrMapData` is provided to prevent accidental misuse.
 
 ---
 
