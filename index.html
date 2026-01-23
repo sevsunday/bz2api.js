@@ -455,6 +455,49 @@
       color: var(--text-muted);
     }
     
+    /* Team Column Layout (for STRAT/MPI games) */
+    .players-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .team-column {
+      min-width: 0;
+    }
+    
+    .team-header {
+      font-size: 0.7em;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+      padding: 0 4px;
+    }
+    
+    .team-column .player-list {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .player.computer-player {
+      background: rgba(57, 197, 207, 0.05);
+    }
+    
+    .player.computer-player .player-name {
+      color: var(--accent-cyan);
+      font-style: italic;
+    }
+    
+    .player.empty-team {
+      color: var(--text-muted);
+      font-size: 0.8em;
+      font-style: italic;
+      padding: 7.5px 10px;
+    }
+    
     /* Profile/Link buttons */
     .profile-btn, .mod-link {
       display: inline-flex;
@@ -819,14 +862,15 @@
       return div.innerHTML;
     }
     
-    function renderPlayer(player, showStats = true) {
+    function renderPlayer(player, showStats = true, hideTeamBadge = false) {
       const badges = [];
       if (player.isHost) badges.push('<span class="host-badge">HOST</span>');
       if (player.isCommander) badges.push('<span class="commander-badge">⌘ CMDR</span>');
       else if (player.isTeamLeader) badges.push('<span class="leader-badge">LEAD</span>');
       if (player.isHidden) badges.push('<span class="hidden-badge">HIDDEN</span>');
       
-      const teamBadge = player.team ? `<span class="player-team">T${player.team}</span>` : '';
+      // Only show team badge if not hidden (team columns make it clear)
+      const teamBadge = (!hideTeamBadge && player.team) ? `<span class="player-team">T${player.team}</span>` : '';
       
       // Profile link button
       const profileBtn = player.profileUrl ? 
@@ -848,6 +892,56 @@
           ${teamBadge}
         </div>
       `;
+    }
+    
+    function renderPlayers(session) {
+      const players = session.players;
+      const hasStats = players.some(p => p.kills || p.deaths || p.score);
+      
+      // For team games (STRAT or MPI), show two-column layout
+      if (session.isTeamGame) {
+        // Split players by team and sort with commanders first
+        const team1 = players.filter(p => p.team === 1)
+          .sort((a, b) => (b.isCommander ? 1 : 0) - (a.isCommander ? 1 : 0));
+        const team2 = players.filter(p => p.team === 2)
+          .sort((a, b) => (b.isCommander ? 1 : 0) - (a.isCommander ? 1 : 0));
+        
+        // Render team 1 players
+        const team1Html = team1.length > 0 
+          ? team1.map(p => renderPlayer(p, hasStats, true)).join('')
+          : '<div class="player empty-team">No players</div>';
+        
+        // Render team 2 players (or Computer for MPI)
+        let team2Html;
+        if (session.gameMode === 'MPI') {
+          // MPI: Team 2 is always Computer
+          team2Html = '<div class="player computer-player"><span class="player-name">🤖 Computer</span></div>';
+        } else if (team2.length > 0) {
+          team2Html = team2.map(p => renderPlayer(p, hasStats, true)).join('');
+        } else {
+          team2Html = '<div class="player empty-team">No players</div>';
+        }
+        
+        return `
+          <div class="players-grid">
+            <div class="team-column">
+              <div class="team-header">Team 1</div>
+              <div class="player-list">${team1Html}</div>
+            </div>
+            <div class="team-column">
+              <div class="team-header">Team 2</div>
+              <div class="player-list">${team2Html}</div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Non-team games (DM): single column layout
+      if (players.length === 0) {
+        return '<div class="player-list"><div style="padding: 8px; color: var(--text-muted); font-size: 0.8em;">No players</div></div>';
+      }
+      
+      return `<div class="player-list">${players.map(p => renderPlayer(p, hasStats, false)).join('')}</div>`;
     }
     
     function renderMods(mods, isStock) {
@@ -894,9 +988,6 @@
         `<span><span class="icon">⌘</span> ${session.commanders.map(n => escapeHtml(n)).join(', ')}</span>` : '';
       
       const hasStats = session.players.some(p => p.kills || p.deaths || p.score);
-      const playersHtml = session.players.length > 0 ?
-        session.players.map(p => renderPlayer(p, hasStats)).join('') :
-        '<div style="padding: 8px; color: var(--text-muted); font-size: 0.8em;">No players</div>';
       
       return `
         <div class="session-card" data-session-index="${index}" onclick="toggleSession(this, ${index})">
@@ -919,7 +1010,7 @@
             ${motdHtml}
             
             <div class="section-title">Players ${hasStats ? '(K/D/S)' : ''}</div>
-            <div class="player-list">${playersHtml}</div>
+            ${renderPlayers(session)}
             
             <div class="detail-grid">
               <div class="detail-item">
