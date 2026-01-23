@@ -1,1405 +1,331 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bz2api.js - demo & browser</title>
-  <link rel="stylesheet" href="css/json-explorer.css">
-  <style>
-    :root {
-      --bg-primary: #0d1117;
-      --bg-secondary: #161b22;
-      --bg-tertiary: #21262d;
-      --accent-blue: #58a6ff;
-      --accent-orange: #d29922;
-      --accent-green: #3fb950;
-      --accent-red: #f85149;
-      --accent-purple: #bc8cff;
-      --accent-cyan: #39c5cf;
-      --accent-yellow: #e3b341;
-      --text-primary: #c9d1d9;
-      --text-secondary: #8b949e;
-      --text-muted: #6e7681;
-      --border: #30363d;
-    }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    html, body {
-      height: 100%;
-      overflow: hidden;
-    }
-    
-    body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      display: flex;
-      flex-direction: column;
-    }
-    
-    /* Header Bar */
-    .header-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 10px 16px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    
-    .header-bar h1 {
-      color: var(--accent-blue);
-      font-weight: 600;
-      font-size: 1.1em;
-      font-family: monospace;
-    }
-    
-    .header-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    button {
-      background: var(--accent-blue);
-      color: var(--bg-primary);
-      border: none;
-      padding: 6px 14px;
-      font-family: inherit;
-      font-size: 0.85em;
-      cursor: pointer;
-      border-radius: 4px;
-      font-weight: 600;
-      transition: all 0.15s;
-    }
-    
-    button:hover { background: #79c0ff; }
-    button:disabled { background: var(--text-muted); cursor: not-allowed; }
-    
-    .toggle-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-secondary);
-      font-size: 0.8em;
-      cursor: pointer;
-    }
-    
-    .toggle-label input {
-      width: 14px;
-      height: 14px;
-      accent-color: var(--accent-blue);
-    }
-    
-    .status {
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 0.8em;
-    }
-    
-    .status.loading { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
-    .status.success { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
-    .status.error { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
-    
-    /* Main Split Layout */
-    .main-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-    
-    /* Left Panel - Sessions */
-    .sessions-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-width: 300px;
-    }
-    
-    /* Stats Bar - matches JSON header height */
-    .stats-bar {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      padding: 10px 16px;
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      min-height: 42px;
-    }
-    
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85em;
-    }
-    
-    .stat-item .value {
-      font-weight: 700;
-      color: var(--accent-blue);
-    }
-    
-    .stat-item .label {
-      color: var(--text-muted);
-    }
-    
-    .sessions-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-    }
-    
-    /* Right Panel - JSON Viewer */
-    .json-panel {
-      display: flex;
-      flex-direction: column;
-      background: var(--bg-secondary);
-      min-width: 200px;
-    }
-    
-    .json-panel.collapsed {
-      min-width: 40px !important;
-      width: 40px !important;
-    }
-    
-    /* JSON Header - matches Stats Bar height */
-    .json-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0px 16px;
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      min-height: 42px;
-    }
-    
-    .json-header h2 {
-      font-size: 0.9em;
-      font-weight: 600;
-      color: var(--accent-cyan);
-      white-space: nowrap;
-    }
-    
-    .collapse-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 4px 10px;
-      font-size: 0.9em;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    
-    .collapse-btn:hover {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      border-color: var(--text-muted);
-    }
-    
-    /* Collapsed state styling */
-    .json-panel.collapsed .json-header {
-      flex-direction: column;
-      padding: 12px 8px;
-      height: 100%;
-      justify-content: flex-start;
-      gap: 12px;
-    }
-    
-    .json-panel.collapsed .json-header h2 {
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      font-size: 0.8em;
-    }
-    
-    .json-panel.collapsed .json-explorer-container {
-      display: none;
-    }
-    
-    /* JSON Explorer Container */
-    .json-explorer-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      margin: 8px;
-    }
-    
-    /* Session Cards */
-    .session-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-bottom: 10px;
-      overflow: hidden;
-      transition: border-color 0.15s;
-    }
-    
-    .session-card:hover { border-color: var(--accent-blue); }
-    .session-card:last-child { margin-bottom: 0; }
-    
-    .session-header {
-      padding: 12px 14px;
-      cursor: pointer;
-    }
-    
-    .session-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-    
-    .session-name {
-      font-weight: 600;
-      color: var(--text-primary);
-      font-size: 0.95em;
-      word-break: break-word;
-    }
-    
-    .session-badges {
-      display: flex;
-      gap: 5px;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-    
-    .badge {
-      padding: 2px 7px;
-      border-radius: 3px;
-      font-size: 0.65em;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-    
-    .badge.state-pregame { background: rgba(139, 148, 158, 0.2); color: #8b949e; }
-    .badge.state-ingame { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
-    .badge.state-postgame { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
-    .badge.type-dm { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
-    .badge.type-strat { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
-    .badge.locked { background: rgba(227, 179, 65, 0.15); color: var(--accent-yellow); }
-    .badge.password { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
-    .badge.dedicated { background: rgba(57, 197, 207, 0.15); color: var(--accent-cyan); }
-    .badge.vsr { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
-    
-    /* Join Button */
-    .join-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-left: 8px;
-      background: rgba(63, 185, 80, 0.15);
-      color: var(--accent-green);
-      padding: 3px 8px;
-      border-radius: 3px;
-      font-size: 0.7em;
-      font-weight: 600;
-      text-decoration: none;
-      border: 1px solid rgba(63, 185, 80, 0.3);
-      transition: all 0.15s;
-    }
-    
-    .join-btn:hover {
-      background: rgba(63, 185, 80, 0.25);
-      border-color: rgba(63, 185, 80, 0.5);
-    }
-    
-    .join-btn .icon { font-size: 1.1em; }
-    
-    /* Hidden Players Warning */
-    .hidden-warning {
-      background: rgba(248, 81, 73, 0.1);
-      border-left: 2px solid var(--accent-red);
-      padding: 6px 10px;
-      margin: 10px 0;
-      font-size: 0.8em;
-      color: var(--text-secondary);
-      border-radius: 0 4px 4px 0;
-    }
-    
-    .hidden-warning .label {
-      color: var(--accent-red);
-      font-weight: 600;
-    }
-    
-    .session-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      font-size: 0.8em;
-      color: var(--text-secondary);
-    }
-    
-    .session-meta span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    
-    .session-meta .icon { opacity: 0.7; font-size: 0.95em; }
-    .session-meta .icon.cmdr { font-size: 0.8em; }
-    
-    .expand-icon {
-      color: var(--text-muted);
-      transition: transform 0.2s;
-      font-size: 0.75em;
-    }
-    
-    .session-card.expanded .expand-icon { transform: rotate(90deg); }
-    
-    .session-details {
-      display: none;
-      padding: 0 14px 14px;
-      border-top: 1px solid var(--border);
-    }
-    
-    .session-card.expanded .session-details { display: block; }
-    
-    /* Map Preview */
-    .map-preview {
-      float: right;
-      margin: 12px 0 12px 12px;
-      max-width: 150px;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    
-    .map-preview img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-    
-    /* Player List */
-    .section-title {
-      font-size: 0.7em;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin: 12px 0 6px;
-      font-weight: 600;
-    }
-    
-    .player-list {
-      background: var(--bg-tertiary);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    
-    .player {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      font-size: 0.8em;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-    
-    .player:last-child { border-bottom: none; }
-    
-    .player-name {
-      color: var(--accent-green);
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex: 1;
-      min-width: 100px;
-    }
-    
-    .player-name .host-badge,
-    .player-name .leader-badge,
-    .player-name .commander-badge,
-    .player-name .hidden-badge {
-      font-size: 0.65em;
-      padding: 1px 4px;
-      border-radius: 2px;
-    }
-    
-    .player-name .host-badge {
-      background: rgba(88, 166, 255, 0.2);
-      color: var(--accent-blue);
-    }
-    
-    .player-name .leader-badge {
-      background: rgba(227, 179, 65, 0.2);
-      color: var(--accent-yellow);
-    }
-    
-    .player-name .commander-badge {
-      background: rgba(188, 140, 255, 0.2);
-      color: var(--accent-purple);
-    }
-    
-    .player-name .hidden-badge {
-      background: rgba(248, 81, 73, 0.15);
-      color: var(--accent-red);
-    }
-    
-    .player-stats {
-      display: flex;
-      gap: 8px;
-      font-size: 0.85em;
-    }
-    
-    .player-stats span {
-      min-width: 28px;
-      text-align: right;
-    }
-    
-    .player-stats .kills { color: var(--accent-green); }
-    .player-stats .deaths { color: var(--accent-red); }
-    .player-stats .score { color: var(--accent-blue); }
-    
-    .player-team {
-      font-size: 0.7em;
-      padding: 2px 5px;
-      border-radius: 2px;
-      background: var(--bg-secondary);
-      color: var(--text-secondary);
-    }
-    
-    .player-platform {
-      font-size: 0.7em;
-      color: var(--text-muted);
-    }
-    
-    /* Team Column Layout (for STRAT/MPI games) */
-    .players-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    
-    .team-column {
-      min-width: 0;
-    }
-    
-    .team-header {
-      font-size: 0.7em;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      font-weight: 600;
-      padding: 0 4px;
-    }
-    
-    .team-column .player-list {
-      background: var(--bg-tertiary);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    
-    .player.computer-player {
-      background: rgba(57, 197, 207, 0.05);
-    }
-    
-    .player.computer-player .player-name {
-      color: var(--accent-cyan);
-      font-style: italic;
-    }
-    
-    .player.empty-team {
-      color: var(--text-muted);
-      font-size: 0.8em;
-      font-style: italic;
-      padding: 7.5px 10px;
-    }
-    
-    /* Profile/Link buttons */
-    .profile-btn, .mod-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 0.7em;
-      text-decoration: none;
-      transition: all 0.15s;
-      border: 1px solid transparent;
-    }
-    
-    .profile-btn {
-      background: rgba(88, 166, 255, 0.1);
-      color: var(--accent-blue);
-      border-color: rgba(88, 166, 255, 0.2);
-    }
-    
-    .profile-btn:hover {
-      background: rgba(88, 166, 255, 0.2);
-      border-color: rgba(88, 166, 255, 0.4);
-    }
-    
-    .mod-link {
-      background: rgba(188, 140, 255, 0.1);
-      color: var(--accent-purple);
-      border-color: rgba(188, 140, 255, 0.2);
-    }
-    
-    .mod-link:hover {
-      background: rgba(188, 140, 255, 0.2);
-      border-color: rgba(188, 140, 255, 0.4);
-    }
-    
-    .mod-link.stock {
-      background: rgba(110, 118, 129, 0.1);
-      color: var(--text-muted);
-      border-color: rgba(110, 118, 129, 0.2);
-      cursor: default;
-    }
-    
-    .mods-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      align-items: center;
-    }
-    
-    .mods-toggle {
-      background: rgba(139, 148, 158, 0.15);
-      color: #8b949e;
-      border: 1px solid rgba(139, 148, 158, 0.3);
-      border-radius: 3px;
-      padding: 2px 6px;
-      font-size: 0.7em;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    
-    .mods-toggle:hover {
-      background: rgba(139, 148, 158, 0.25);
-      color: #c9d1d9;
-    }
-    
-    /* Detail Grid */
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 6px;
-      margin-top: 10px;
-    }
-    
-    .detail-item {
-      background: var(--bg-tertiary);
-      padding: 7px 9px;
-      border-radius: 4px;
-    }
-    
-    .detail-label {
-      color: var(--text-muted);
-      font-size: 0.65em;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-    
-    .detail-value {
-      color: var(--text-primary);
-      font-size: 0.8em;
-      margin-top: 2px;
-    }
-    
-    /* Raw toggle in session */
-    .raw-toggle {
-      margin-top: 12px;
-    }
-    
-    .raw-toggle summary {
-      cursor: pointer;
-      color: var(--text-muted);
-      font-size: 0.75em;
-    }
-    
-    .raw-toggle summary:hover {
-      color: var(--text-secondary);
-    }
-    
-    .raw-json {
-      background: var(--bg-primary);
-      padding: 10px;
-      border-radius: 4px;
-      margin-top: 6px;
-      overflow-x: auto;
-    }
-    
-    .raw-json pre {
-      margin: 0;
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 0.7em;
-      color: var(--text-secondary);
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-    
-    .motd {
-      background: rgba(88, 166, 255, 0.1);
-      border-left: 2px solid var(--accent-blue);
-      padding: 6px 10px;
-      margin: 10px 0;
-      font-size: 0.8em;
-      color: var(--text-secondary);
-      border-radius: 0 4px 4px 0;
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-    }
-    
-    /* Splitters */
-    .splitter-v {
-      width: 6px;
-      background: var(--border);
-      cursor: col-resize;
-      flex-shrink: 0;
-      transition: background 0.15s;
-      position: relative;
-    }
-    
-    .splitter-v:hover,
-    .splitter-v.active {
-      background: var(--accent-blue);
-    }
-    
-    .splitter-v::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 2px;
-      height: 30px;
-      background: var(--text-muted);
-      border-radius: 1px;
-      opacity: 0.5;
-    }
-    
-    .splitter-v:hover::after,
-    .splitter-v.active::after {
-      background: var(--bg-primary);
-      opacity: 1;
-    }
-    
-    /* Prevent text selection during drag */
-    body.dragging {
-      user-select: none;
-      cursor: col-resize;
-    }
-  </style>
+  <title>bz2api.js - Battlezone 2 Multiplayer Session API</title>
+  <meta name="description" content="A JavaScript library for querying Battlezone 2: Combat Commander multiplayer session data. Full parsing, CORS handling, map enrichment, and more.">
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/landing.css">
+  
+  <!-- Theme Script (load early to prevent flash) -->
+  <script src="js/theme.js"></script>
 </head>
 <body>
-  <header class="header-bar">
-    <h1>bz2api.js - demo & browser</h1>
-    <div class="header-controls">
-      <button id="fetchBtn" onclick="fetchData()">Refresh</button>
-      <label class="toggle-label">
-        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
-        Auto-refresh
-      </label>
-      <label class="toggle-label">
-        <input type="checkbox" id="enrichMaps" checked onchange="saveMapEnrichmentPref()">
-        Map Data
-      </label>
-      <label class="toggle-label">
-        <input type="checkbox" id="enrichVsrMaps" checked onchange="saveVsrEnrichmentPref()">
-        VSR Data
-      </label>
-      <span id="status" class="status" style="display: none;"></span>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="./">bz2api.js</a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center gap-2">
+          <li class="nav-item">
+            <a class="nav-link active" href="./">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./demo/">Demo</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./docs/">Docs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/phu54321/bz2api.js" target="_blank">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+            </a>
+          </li>
+          <li class="nav-item ms-2">
+            <button class="theme-toggle" type="button" aria-label="Toggle theme">☀️</button>
+          </li>
+          <li class="nav-item ms-2">
+            <a class="btn btn-primary-custom btn-sm" href="bz2api.js" download>Download</a>
+          </li>
+        </ul>
+      </div>
     </div>
-  </header>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <h1 class="hero-title animate-fade-in-up">
+            <span class="text-gradient">bz2api.js</span>
+          </h1>
+          <p class="hero-subtitle animate-fade-in-up animate-delay-1">
+            A lightweight JavaScript library for querying Battlezone 2: Combat Commander multiplayer session data. 
+            Works in browsers and Node.js with automatic CORS handling.
+          </p>
+          <div class="d-flex gap-3 flex-wrap animate-fade-in-up animate-delay-2">
+            <a href="bz2api.js" download class="btn btn-primary-custom">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+              </svg>
+              Download
+            </a>
+            <a href="./demo/" class="btn btn-outline-custom">
+              View Demo →
+            </a>
+            <a href="./docs/" class="btn btn-ghost">
+              Documentation
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-5 d-none d-lg-block">
+          <div class="code-block animate-fade-in-up animate-delay-3 animate-float">
+<pre><code><span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>();
+
+<span class="code-comment">// Result includes parsed sessions</span>
+result.sessions.<span class="code-function">forEach</span>(session => {
+  <span class="code-function">console.log</span>(session.name);
+  <span class="code-function">console.log</span>(session.players);
+  <span class="code-function">console.log</span>(session.mapFile);
+});</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="section-padding" id="features">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="section-title">Features</h2>
+        <p class="section-subtitle mx-auto">Everything you need to integrate BZ2 multiplayer data into your apps</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-card feature-card">
+            <div class="feature-icon">🌐</div>
+            <h3 class="feature-title">CORS Handling</h3>
+            <p class="feature-desc">Automatic proxy fallback for browser-based apps. Works out of the box without server configuration.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-card feature-card">
+            <div class="feature-icon">📊</div>
+            <h3 class="feature-title">Full Data Parsing</h3>
+            <p class="feature-desc">Complete parsing of session data including players, stats, game modes, NAT types, and more.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-card feature-card">
+            <div class="feature-icon">🗺️</div>
+            <h3 class="feature-title">Map Enrichment</h3>
+            <p class="feature-desc">Optional map data enrichment with images, descriptions, and team names from external APIs.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-card feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3 class="feature-title">VSR Support</h3>
+            <p class="feature-desc">Built-in support for VSR (Vet Strategy Recycler) mod with map metadata like pools and loose scrap.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-card feature-card">
+            <div class="feature-icon">🔗</div>
+            <h3 class="feature-title">Steam Integration</h3>
+            <p class="feature-desc">Player profile URLs, Steam Workshop mod links, and direct game join URLs.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-card feature-card">
+            <div class="feature-icon">🖥️</div>
+            <h3 class="feature-title">Universal</h3>
+            <p class="feature-desc">Works in browsers (vanilla JS, React, Vue) and server-side (Node.js) environments.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section class="section-padding" style="background: var(--bg-secondary);">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-5 mb-4 mb-lg-0">
+          <h2 class="section-title">Quick Start</h2>
+          <p class="section-subtitle">Get up and running in seconds. Just include the script and start fetching session data.</p>
+          
+          <div class="mt-4">
+            <h5 class="mb-3">Installation Options:</h5>
+            
+            <div class="mb-3">
+              <span class="badge bg-secondary me-2">CDN</span>
+              <code class="small">Coming Soon</code>
+            </div>
+            
+            <div class="mb-3">
+              <span class="badge bg-secondary me-2">Download</span>
+              <a href="bz2api.js" download class="text-decoration-none">bz2api.js</a>
+            </div>
+            
+            <div>
+              <span class="badge bg-secondary me-2">GitHub</span>
+              <a href="https://github.com/phu54321/bz2api.js" target="_blank" class="text-decoration-none">View Source</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-7">
+          <div class="code-block glass-card-static">
+<pre><code><span class="code-comment">// Include the script</span>
+&lt;<span class="code-keyword">script</span> <span class="code-function">src</span>=<span class="code-string">"bz2api.js"</span>&gt;&lt;/<span class="code-keyword">script</span>&gt;
+
+<span class="code-comment">// Fetch all active sessions</span>
+<span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>();
+<span class="code-function">console.log</span>(result.sessions);
+
+<span class="code-comment">// With map enrichment</span>
+<span class="code-keyword">const</span> enriched = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>({
+  enrichMaps: <span class="code-keyword">true</span>,
+  enrichVsrMaps: <span class="code-keyword">true</span>
+});
+
+<span class="code-comment">// Access session data</span>
+enriched.sessions.<span class="code-function">forEach</span>(s => {
+  <span class="code-function">console.log</span>(<span class="code-string">`</span>${s.name}<span class="code-string">: </span>${s.playerCount}<span class="code-string">/</span>${s.maxPlayers}<span class="code-string">`</span>);
+});</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data Structure Preview -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="section-title">Rich Session Data</h2>
+        <p class="section-subtitle mx-auto">Every session is parsed into a comprehensive, ready-to-use object</p>
+      </div>
+      
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="code-block glass-card-static">
+<pre><code>{
+  <span class="code-string">"name"</span>: <span class="code-string">"VSR Dedicated DM Server"</span>,
+  <span class="code-string">"state"</span>: <span class="code-string">"InGame"</span>,
+  <span class="code-string">"gameType"</span>: <span class="code-string">"DM"</span>,
+  <span class="code-string">"gameModeName"</span>: <span class="code-string">"Deathmatch"</span>,
+  <span class="code-string">"mapFile"</span>: <span class="code-string">"rckcnynvsr"</span>,
+  <span class="code-string">"mapName"</span>: <span class="code-string">"VSR DM: Rocky Canyon"</span>,        <span class="code-comment">// Enriched</span>
+  <span class="code-string">"mapImageUrl"</span>: <span class="code-string">"https://..."</span>,             <span class="code-comment">// Enriched</span>
+  <span class="code-string">"playerCount"</span>: <span class="code-number">3</span>,
+  <span class="code-string">"maxPlayers"</span>: <span class="code-number">14</span>,
+  <span class="code-string">"players"</span>: [
+    {
+      <span class="code-string">"name"</span>: <span class="code-string">"PlayerOne"</span>,
+      <span class="code-string">"steamId"</span>: <span class="code-string">"76561198..."</span>,
+      <span class="code-string">"profileUrl"</span>: <span class="code-string">"https://steamcommunity.com/..."</span>,
+      <span class="code-string">"kills"</span>: <span class="code-number">15</span>,
+      <span class="code-string">"deaths"</span>: <span class="code-number">8</span>,
+      <span class="code-string">"score"</span>: <span class="code-number">42</span>
+    }
+  ],
+  <span class="code-string">"gameBalance"</span>: <span class="code-string">"VSR"</span>,
+  <span class="code-string">"steamJoinUrl"</span>: <span class="code-string">"steam://rungame/..."</span>,
+  <span class="code-comment">// ...and 30+ more fields</span>
+}</code></pre>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-4">
+        <a href="./docs/#data-structures" class="btn btn-outline-custom">View Full Schema →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="section-padding" style="background: var(--bg-secondary);">
+    <div class="container">
+      <div class="text-center">
+        <h2 class="section-title mb-4">Ready to get started?</h2>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          <a href="bz2api.js" download class="btn btn-primary-custom btn-lg">
+            Download bz2api.js
+          </a>
+          <a href="./demo/" class="btn btn-outline-custom btn-lg">
+            Try the Demo
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer-custom">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5 class="mb-3" style="color: var(--accent-blue); font-family: 'JetBrains Mono', monospace;">bz2api.js</h5>
+          <p class="small mb-0">
+            A JavaScript library for Battlezone 2: Combat Commander multiplayer session data.
+            <br>Not affiliated with Rebellion or Big Boat Interactive.
+          </p>
+        </div>
+        <div class="col-md-3">
+          <h6 class="mb-3">Links</h6>
+          <ul class="list-unstyled small">
+            <li><a href="./demo/">Demo</a></li>
+            <li><a href="./docs/">Documentation</a></li>
+            <li><a href="https://github.com/phu54321/bz2api.js" target="_blank">GitHub</a></li>
+          </ul>
+        </div>
+        <div class="col-md-3">
+          <h6 class="mb-3">Resources</h6>
+          <ul class="list-unstyled small">
+            <li><a href="https://store.steampowered.com/app/624970/Battlezone_Combat_Commander/" target="_blank">BZ2 on Steam</a></li>
+            <li><a href="https://www.gog.com/game/battlezone_combat_commander" target="_blank">BZ2 on GOG</a></li>
+          </ul>
+        </div>
+      </div>
+      <hr class="my-4" style="border-color: var(--border-color);">
+      <div class="text-center small">
+        <p class="mb-0">MIT License © 2026</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   
-  <div class="main-container">
-    <!-- Left Panel - Sessions -->
-    <div class="sessions-panel">
-      <div class="stats-bar">
-        <div class="stat-item">
-          <span class="value" id="totalSessions">-</span>
-          <span class="label">sessions</span>
-        </div>
-        <div class="stat-item">
-          <span class="value" id="totalPlayers">-</span>
-          <span class="label">players</span>
-        </div>
-        <div class="stat-item">
-          <span class="value" id="inGameCount">-</span>
-          <span class="label">in-game</span>
-        </div>
-        <div class="stat-item">
-          <span class="value" id="preGameCount">-</span>
-          <span class="label">in-lobby</span>
-        </div>
-      </div>
-      <div class="sessions-content" id="sessionsContainer">
-        <div class="empty-state">Click "Refresh" to load sessions...</div>
-      </div>
-    </div>
-    
-    <!-- Vertical Splitter -->
-    <div class="splitter-v" id="splitterV"></div>
-    
-    <!-- Right Panel - JSON Explorer -->
-    <div class="json-panel" id="jsonPanel" style="width: 50%">
-      <div class="json-header">
-        <h2>JSON Explorer</h2>
-        <button class="collapse-btn" onclick="toggleJsonPanel()" title="Collapse panel">»</button>
-      </div>
-      <div class="json-explorer-container" id="jsonExplorerContainer">
-        <!-- JsonExplorer will be initialized here -->
-      </div>
-    </div>
-  </div>
-  
-  <script src="bz2api.js"></script>
-  <script src="js/json-explorer.js"></script>
+  <!-- Scroll animations -->
   <script>
-    let autoRefreshInterval = null;
-    let jsonPanelWidth = 50; // percentage
-    let jsonExplorer = null;
-    let schemaData = null;
-    let lastFetchResult = null; // Store last fetch result for session selection
-    let selectedSessionId = null; // Currently selected session ID (persists across refreshes)
-    
-    // ============ Initialize JSON Explorer ============
-    async function initJsonExplorer() {
-      // Load schema
-      try {
-        const response = await fetch('data/bz2-schema.json');
-        schemaData = await response.json();
-      } catch (err) {
-        console.warn('Failed to load schema:', err);
-        schemaData = {};
-      }
-      
-      // Initialize explorer
-      jsonExplorer = new JsonExplorer('#jsonExplorerContainer', {
-        schema: schemaData,
-        defaultExpandDepth: 2
-      });
-    }
-    
-    // ============ Splitter Logic ============
-    function initSplitters() {
-      const splitterV = document.getElementById('splitterV');
-      const sessionsPanel = document.querySelector('.sessions-panel');
-      const jsonPanel = document.getElementById('jsonPanel');
-      const mainContainer = document.querySelector('.main-container');
-      
-      // Vertical splitter (adjusts panel widths)
-      let isDraggingV = false;
-      
-      splitterV.addEventListener('mousedown', (e) => {
-        if (jsonPanel.classList.contains('collapsed')) return;
-        isDraggingV = true;
-        splitterV.classList.add('active');
-        document.body.classList.add('dragging');
-        e.preventDefault();
-      });
-      
-      document.addEventListener('mousemove', (e) => {
-        if (isDraggingV) {
-          const containerRect = mainContainer.getBoundingClientRect();
-          const splitterWidth = 6;
-          const minSessionsWidth = 300;
-          const minJsonWidth = 200;
-          
-          // Calculate new widths
-          let newSessionsWidth = e.clientX - containerRect.left;
-          let newJsonWidth = containerRect.width - newSessionsWidth - splitterWidth;
-          
-          // Enforce minimums
-          if (newSessionsWidth < minSessionsWidth) {
-            newSessionsWidth = minSessionsWidth;
-            newJsonWidth = containerRect.width - newSessionsWidth - splitterWidth;
-          }
-          if (newJsonWidth < minJsonWidth) {
-            newJsonWidth = minJsonWidth;
-            newSessionsWidth = containerRect.width - newJsonWidth - splitterWidth;
-          }
-          
-          // Apply widths
-          sessionsPanel.style.flex = 'none';
-          sessionsPanel.style.width = newSessionsWidth + 'px';
-          jsonPanel.style.width = newJsonWidth + 'px';
-          
-          // Store percentage for collapse/expand
-          jsonPanelWidth = (newJsonWidth / containerRect.width) * 100;
+    // Animate elements on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
         }
       });
-      
-      document.addEventListener('mouseup', () => {
-        if (isDraggingV) {
-          isDraggingV = false;
-          splitterV.classList.remove('active');
-          document.body.classList.remove('dragging');
-        }
-      });
-    }
-    
-    // ============ Map Enrichment Preference ============
-    function loadMapEnrichmentPref() {
-      const saved = localStorage.getItem('bz2api_enrichMaps');
-      // Default to true (checked) if no preference saved
-      const enrichMaps = saved === null ? true : saved === 'true';
-      document.getElementById('enrichMaps').checked = enrichMaps;
-    }
-    
-    function saveMapEnrichmentPref() {
-      const enrichMaps = document.getElementById('enrichMaps').checked;
-      localStorage.setItem('bz2api_enrichMaps', enrichMaps.toString());
-    }
-    
-    function getEnrichMapsOption() {
-      return document.getElementById('enrichMaps').checked;
-    }
-    
-    // ============ VSR Enrichment Preference ============
-    function loadVsrEnrichmentPref() {
-      const saved = localStorage.getItem('bz2api_enrichVsrMaps');
-      // Default to true (checked) if no preference saved
-      const enrichVsrMaps = saved === null ? true : saved === 'true';
-      document.getElementById('enrichVsrMaps').checked = enrichVsrMaps;
-    }
-    
-    function saveVsrEnrichmentPref() {
-      const enrichVsrMaps = document.getElementById('enrichVsrMaps').checked;
-      localStorage.setItem('bz2api_enrichVsrMaps', enrichVsrMaps.toString());
-    }
-    
-    function getEnrichVsrMapsOption() {
-      return document.getElementById('enrichVsrMaps').checked;
-    }
-    
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', async () => {
-      initSplitters();
-      loadMapEnrichmentPref();
-      loadVsrEnrichmentPref();
-      await initJsonExplorer();
-      fetchData();
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      observer.observe(el);
     });
-    
-    function setStatus(message, type) {
-      const status = document.getElementById('status');
-      status.textContent = message;
-      status.className = 'status ' + type;
-      status.style.display = 'inline-block';
-    }
-    
-    function toggleJsonPanel() {
-      const panel = document.getElementById('jsonPanel');
-      const btn = panel.querySelector('.collapse-btn');
-      const splitterV = document.getElementById('splitterV');
-      const sessionsPanel = document.querySelector('.sessions-panel');
-      const isCollapsed = panel.classList.toggle('collapsed');
-      
-      // » when expanded (click to collapse right), « when collapsed (click to expand left)
-      btn.textContent = isCollapsed ? '«' : '»';
-      btn.title = isCollapsed ? 'Expand panel' : 'Collapse panel';
-      
-      if (isCollapsed) {
-        // Store current width before collapsing
-        splitterV.style.display = 'none';
-        sessionsPanel.style.flex = '1';
-        sessionsPanel.style.width = 'auto';
-      } else {
-        // Restore splitter and width
-        splitterV.style.display = 'block';
-        const mainContainer = document.querySelector('.main-container');
-        const containerWidth = mainContainer.getBoundingClientRect().width;
-        const jsonWidth = (jsonPanelWidth / 100) * containerWidth;
-        sessionsPanel.style.flex = 'none';
-        sessionsPanel.style.width = (containerWidth - jsonWidth - 6) + 'px';
-        panel.style.width = jsonWidth + 'px';
-      }
-    }
-    
-    function formatTime(minutes) {
-      if (minutes === null || minutes === undefined) return 'N/A';
-      if (minutes === '>255' || minutes >= 255) return '4h+';
-      if (minutes >= 60) {
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        return `${hours}h ${mins}m`;
-      }
-      return `${minutes}m`;
-    }
-    
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-    
-    function renderPlayer(player, showStats = true, hideTeamBadge = false) {
-      const badges = [];
-      if (player.isHost) badges.push('<span class="host-badge">HOST</span>');
-      if (player.isCommander) badges.push('<span class="commander-badge">⌘ CMDR</span>');
-      else if (player.isTeamLeader) badges.push('<span class="leader-badge">LEAD</span>');
-      if (player.isHidden) badges.push('<span class="hidden-badge">HIDDEN</span>');
-      
-      // Only show team badge if not hidden (team columns make it clear)
-      const teamBadge = (!hideTeamBadge && player.team) ? `<span class="player-team">T${player.team}</span>` : '';
-      
-      // Profile link button
-      const profileBtn = player.profileUrl ? 
-        `<a href="${player.profileUrl}" class="profile-btn" target="_blank" onclick="event.stopPropagation()" title="View ${player.platform} Profile">👤</a>` : '';
-      
-      const statsHtml = showStats ? `
-        <div class="player-stats">
-          <span class="kills" title="Kills">${player.kills ?? '-'}</span>
-          <span class="deaths" title="Deaths">${player.deaths ?? '-'}</span>
-          <span class="score" title="Score">${player.score ?? '-'}</span>
-        </div>
-      ` : '';
-      
-      return `
-        <div class="player">
-          <span class="player-name">${escapeHtml(player.name)} ${badges.join('')}</span>
-          ${profileBtn}
-          ${statsHtml}
-          ${teamBadge}
-        </div>
-      `;
-    }
-    
-    function renderPlayers(session) {
-      const players = session.players;
-      const hasStats = players.some(p => p.kills || p.deaths || p.score);
-      
-      // For team games (STRAT or MPI), show two-column layout
-      if (session.isTeamGame) {
-        // Split players by team and sort with commanders first
-        const team1 = players.filter(p => p.team === 1)
-          .sort((a, b) => (b.isCommander ? 1 : 0) - (a.isCommander ? 1 : 0));
-        const team2 = players.filter(p => p.team === 2)
-          .sort((a, b) => (b.isCommander ? 1 : 0) - (a.isCommander ? 1 : 0));
-        
-        // Render team 1 players
-        const team1Html = team1.length > 0 
-          ? team1.map(p => renderPlayer(p, hasStats, true)).join('')
-          : '<div class="player empty-team">No players</div>';
-        
-        // Render team 2 players (or Computer for MPI)
-        let team2Html;
-        if (session.gameMode === 'MPI') {
-          // MPI: Team 2 is always Computer
-          team2Html = '<div class="player computer-player"><span class="player-name">🤖 Computer</span></div>';
-        } else if (team2.length > 0) {
-          team2Html = team2.map(p => renderPlayer(p, hasStats, true)).join('');
-        } else {
-          team2Html = '<div class="player empty-team">No players</div>';
-        }
-        
-        // Use enriched team names if available
-        const team1Name = session.teamNames?.team1 || 'Team 1';
-        const team2Name = session.teamNames?.team2 || 'Team 2';
-        
-        return `
-          <div class="players-grid">
-            <div class="team-column">
-              <div class="team-header">${escapeHtml(team1Name)}</div>
-              <div class="player-list">${team1Html}</div>
-            </div>
-            <div class="team-column">
-              <div class="team-header">${escapeHtml(team2Name)}</div>
-              <div class="player-list">${team2Html}</div>
-            </div>
-          </div>
-        `;
-      }
-      
-      // Non-team games (DM): single column layout
-      if (players.length === 0) {
-        return '<div class="player-list"><div style="padding: 8px; color: var(--text-muted); font-size: 0.8em;">No players</div></div>';
-      }
-      
-      return `<div class="player-list">${players.map(p => renderPlayer(p, hasStats, false)).join('')}</div>`;
-    }
-    
-    function renderMods(mods, isStock) {
-      if (isStock || mods.length === 0) {
-        return '<span class="mod-link stock">Stock</span>';
-      }
-      
-      const renderMod = (mod) => {
-        if (mod.id === '0') {
-          return '<span class="mod-link stock">Stock</span>';
-        }
-        if (mod.workshopUrl) {
-          return `<a href="${mod.workshopUrl}" class="mod-link" target="_blank" onclick="event.stopPropagation()" title="View on Steam Workshop">${mod.name || mod.id}</a>`;
-        }
-        return `<span class="mod-link">${mod.name || mod.id}</span>`;
-      };
-      
-      const maxVisible = 3;
-      if (mods.length <= maxVisible) {
-        return mods.map(renderMod).join('');
-      }
-      
-      const visibleMods = mods.slice(0, maxVisible).map(renderMod).join('');
-      const hiddenMods = mods.slice(maxVisible).map(renderMod).join('');
-      const hiddenCount = mods.length - maxVisible;
-      
-      return `
-        <span class="mods-visible">${visibleMods}</span>
-        <span class="mods-hidden" style="display: none;">${hiddenMods}</span>
-        <button class="mods-toggle" onclick="event.stopPropagation(); toggleMods(this)">+${hiddenCount} more</button>
-      `;
-    }
-    
-    function toggleMods(btn) {
-      const container = btn.parentElement;
-      const hidden = container.querySelector('.mods-hidden');
-      const isExpanded = hidden.style.display !== 'none';
-      
-      if (isExpanded) {
-        hidden.style.display = 'none';
-        const count = container.querySelectorAll('.mods-hidden .mod-link').length;
-        btn.textContent = `+${count} more`;
-      } else {
-        hidden.style.display = 'inline';
-        btn.textContent = 'Show less';
-      }
-    }
-    
-    function renderSession(session, index) {
-      const stateClass = session.state === 'InGame' ? 'state-ingame' : 
-                        session.state === 'PreGame' ? 'state-pregame' : 'state-postgame';
-      const typeClass = session.gameType === 'DM' ? 'type-dm' : 'type-strat';
-      
-      const badges = [
-        `<span class="badge ${stateClass}">${session.state}</span>`,
-        `<span class="badge ${typeClass}">${session.gameModeName || session.gameTypeName}</span>`
-      ];
-      
-      // VSR balance badge
-      if (session.gameBalance === 'VSR') badges.push('<span class="badge vsr">VSR</span>');
-      
-      if (session.isLocked) badges.push('<span class="badge locked">Lock</span>');
-      if (session.hasPassword) badges.push('<span class="badge password">PWD</span>');
-      
-      // Join button (only if session has a valid join URL)
-      const joinBtnHtml = session.steamJoinUrl ? 
-        `<a href="${session.steamJoinUrl}" class="join-btn" onclick="event.stopPropagation()" title="Join via Steam"><span class="icon">▶</span> Join</a>` : '';
-      
-      const motdHtml = session.motd ? `<div class="motd">${escapeHtml(session.motd)}</div>` : '';
-      
-      // Hidden players warning
-      const hiddenWarningHtml = session.hiddenPlayers.length > 0 ? 
-        `<div class="hidden-warning"><span class="label">Hidden Players:</span> ${session.hiddenPlayers.map(n => escapeHtml(n)).join(', ')}</div>` : '';
-      
-      // Commanders summary
-      const commandersHtml = session.commanders.length > 0 ?
-        `<span><span class="icon cmdr">⌘</span> ${session.commanders.map(n => escapeHtml(n)).join(', ')}</span>` : '';
-      
-      const hasStats = session.players.some(p => p.kills || p.deaths || p.score);
-      
-      return `
-        <div class="session-card" data-session-index="${index}" onclick="toggleSession(this, ${index})">
-          <div class="session-header">
-            <div class="session-top">
-              <div class="session-name">${escapeHtml(session.name)} ${joinBtnHtml}</div>
-              <div class="session-badges">${badges.join('')}</div>
-            </div>
-            <div class="session-meta">
-              <span><span class="icon">🗺️</span> ${escapeHtml(session.mapName || session.mapFile)}</span>
-              <span><span class="icon">👥</span> ${session.playerCount}/${session.maxPlayers}</span>
-              <span><span class="icon">⏱️</span> ${formatTime(session.gameTimeMinutes)}</span>
-              <span><span class="icon">📡</span> ${session.nat.name}</span>
-              ${commandersHtml}
-              <span style="margin-left: auto;"><span class="expand-icon">▶</span></span>
-            </div>
-          </div>
-          <div class="session-details">
-            ${session.mapImageUrl ? `<div class="map-preview"><img src="${session.mapImageUrl}" alt="${escapeHtml(session.mapName || session.mapFile)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
-            ${hiddenWarningHtml}
-            ${motdHtml}
-            
-            <div class="section-title">Players ${hasStats ? '(K/D/S)' : ''}</div>
-            ${renderPlayers(session)}
-            
-            <div class="detail-grid">
-              <div class="detail-item">
-                <div class="detail-label">Version</div>
-                <div class="detail-value">${session.version}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Game Mode</div>
-                <div class="detail-value">${session.gameModeName || 'Unknown'}${session.vehicleOnly ? ' (Veh)' : ''}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Respawn</div>
-                <div class="detail-value">${session.respawn || 'Unknown'}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">NAT Type</div>
-                <div class="detail-value">${session.nat.name}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">TPS</div>
-                <div class="detail-value">${session.tps}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Max Ping</div>
-                <div class="detail-value">${session.maxPing}ms</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Time Limit</div>
-                <div class="detail-value">${session.timeLimitMinutes ? session.timeLimitMinutes + ' min' : 'None'}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Kill Limit</div>
-                <div class="detail-value">${session.killLimit || 'None'}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Mods</div>
-                <div class="detail-value">
-                  <div class="mods-list">${renderMods(session.mods, session.isStock)}</div>
-                </div>
-              </div>
-            </div>
-            
-            ${session.vsrPools !== null ? `
-            <div class="section-title" style="margin-top: 16px;">VSR Map Data</div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <div class="detail-label">Pools</div>
-                <div class="detail-value">${session.vsrPools}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Loose Scrap</div>
-                <div class="detail-value">${session.vsrLoose === -1 ? 'Unknown' : session.vsrLoose}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Map Author</div>
-                <div class="detail-value">${escapeHtml(session.vsrAuthor) || 'Unknown'}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Map Size</div>
-                <div class="detail-value">${session.vsrMapSize}×${session.vsrMapSize}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Base-to-Base</div>
-                <div class="detail-value">${session.vsrBaseToBase || 'N/A'}</div>
-              </div>
-            </div>
-            ` : ''}
-            
-            <details class="raw-toggle" onclick="event.stopPropagation()">
-              <summary>View Parsed Data</summary>
-              <div class="raw-json">
-                <pre>${escapeHtml(JSON.stringify((() => { const { _raw, ...clean } = session; return clean; })(), null, 2))}</pre>
-              </div>
-            </details>
-            
-            <details class="raw-toggle" onclick="event.stopPropagation()">
-              <summary>View Raw Data</summary>
-              <div class="raw-json">
-                <pre>${escapeHtml(JSON.stringify(session._raw, null, 2))}</pre>
-              </div>
-            </details>
-          </div>
-        </div>
-      `;
-    }
-    
-    function toggleSession(card, sessionIndex) {
-      const wasExpanded = card.classList.contains('expanded');
-      
-      // Collapse any other expanded cards first
-      document.querySelectorAll('.session-card.expanded').forEach(otherCard => {
-        if (otherCard !== card) {
-          otherCard.classList.remove('expanded');
-        }
-      });
-      
-      card.classList.toggle('expanded');
-      const isNowExpanded = card.classList.contains('expanded');
-      
-      // Update JSON explorer based on selection state
-      if (isNowExpanded && lastFetchResult) {
-        // Show only this session's data - track by ID for persistence
-        const session = lastFetchResult.sessions[sessionIndex];
-        selectedSessionId = session ? session.id : null;
-        showSessionInExplorer(sessionIndex);
-      } else {
-        // Collapsed - show all data
-        selectedSessionId = null;
-        showAllDataInExplorer();
-      }
-    }
-    
-    function showSessionInExplorer(index, preserveScroll = false) {
-      if (!jsonExplorer || !lastFetchResult) return;
-      
-      const session = lastFetchResult.sessions[index];
-      if (!session) return;
-      
-      // Save scroll position if preserving
-      const treeContainer = document.querySelector('.json-explorer-tree');
-      const scrollTop = preserveScroll && treeContainer ? treeContainer.scrollTop : 0;
-      
-      // Parsed view (clean, no _raw)
-      const { _raw, ...cleanSession } = session;
-      
-      // Raw view - get the corresponding raw session
-      const rawSession = lastFetchResult.rawResponse?.GET?.[index] || null;
-      
-      jsonExplorer.setData(cleanSession, rawSession);
-      
-      // Restore scroll position
-      if (preserveScroll && treeContainer) {
-        requestAnimationFrame(() => {
-          treeContainer.scrollTop = scrollTop;
-        });
-      }
-    }
-    
-    function showAllDataInExplorer(preserveScroll = false) {
-      if (!jsonExplorer || !lastFetchResult) return;
-      
-      // Save scroll position if preserving
-      const treeContainer = document.querySelector('.json-explorer-tree');
-      const scrollTop = preserveScroll && treeContainer ? treeContainer.scrollTop : 0;
-      
-      // Show full data
-      const cleanedSessions = lastFetchResult.sessions.map(session => {
-        const { _raw, ...cleanSession } = session;
-        return cleanSession;
-      });
-      
-      const parsedData = {
-        timestamp: lastFetchResult.timestamp,
-        sessionCount: lastFetchResult.sessions.length,
-        sessions: cleanedSessions
-      };
-      
-      jsonExplorer.setData(parsedData, lastFetchResult.rawResponse);
-      
-      // Restore scroll position
-      if (preserveScroll && treeContainer) {
-        requestAnimationFrame(() => {
-          treeContainer.scrollTop = scrollTop;
-        });
-      }
-    }
-    
-    function updateStats(sessions) {
-      const totalPlayers = sessions.reduce((sum, s) => sum + s.playerCount, 0);
-      const inGame = sessions.filter(s => s.state === 'InGame').length;
-      const preGame = sessions.filter(s => s.state === 'PreGame').length;
-      
-      document.getElementById('totalSessions').textContent = sessions.length;
-      document.getElementById('totalPlayers').textContent = totalPlayers;
-      document.getElementById('inGameCount').textContent = inGame;
-      document.getElementById('preGameCount').textContent = preGame;
-    }
-    
-    function updateJsonExplorer(result) {
-      if (!jsonExplorer) return;
-      
-      // Parsed view (clean, no _raw)
-      const cleanedSessions = result.sessions.map(session => {
-        const { _raw, ...cleanSession } = session;
-        return cleanSession;
-      });
-      
-      const parsedData = {
-        timestamp: result.timestamp,
-        sessionCount: result.sessions.length,
-        sessions: cleanedSessions
-      };
-      
-      jsonExplorer.setData(parsedData, result.rawResponse);
-    }
-    
-    async function fetchData() {
-      const btn = document.getElementById('fetchBtn');
-      btn.disabled = true;
-      const enrichMaps = getEnrichMapsOption();
-      const enrichVsrMaps = getEnrichVsrMapsOption();
-      const isEnriching = enrichMaps || enrichVsrMaps;
-      setStatus(isEnriching ? 'Fetching + enriching...' : 'Fetching...', 'loading');
-      
-      try {
-        const result = await BZ2API.fetchSessions({ enrichMaps, enrichVsrMaps });
-        
-        // Store result for session selection feature
-        lastFetchResult = result;
-        
-        // Update sessions (preserve scroll position)
-        const container = document.getElementById('sessionsContainer');
-        const sessionsScrollTop = container.scrollTop;
-        
-        if (result.sessions.length === 0) {
-          container.innerHTML = '<div class="empty-state">No active sessions found.</div>';
-          selectedSessionId = null;
-        } else {
-          container.innerHTML = result.sessions.map((session, index) => renderSession(session, index)).join('');
-          
-          // Restore sessions panel scroll position
-          requestAnimationFrame(() => {
-            container.scrollTop = sessionsScrollTop;
-          });
-          
-          // Restore expanded state if we had a selected session
-          if (selectedSessionId) {
-            const selectedIndex = result.sessions.findIndex(s => s.id === selectedSessionId);
-            if (selectedIndex !== -1) {
-              // Re-expand the previously selected session
-              const card = container.querySelector(`[data-session-index="${selectedIndex}"]`);
-              if (card) {
-                card.classList.add('expanded');
-                showSessionInExplorer(selectedIndex, true); // Preserve scroll
-              }
-            } else {
-              // Session no longer exists, clear selection
-              selectedSessionId = null;
-              showAllDataInExplorer(true); // Preserve scroll
-            }
-          } else {
-            // No selection, show all data
-            showAllDataInExplorer(true); // Preserve scroll
-          }
-        }
-        
-        // Update stats
-        updateStats(result.sessions);
-        
-        setStatus(`${new Date().toLocaleTimeString()}`, 'success');
-        
-        console.log('Parsed sessions:', result.sessions);
-      } catch (error) {
-        setStatus('Error: ' + error.message, 'error');
-        console.error('Fetch error:', error);
-      } finally {
-        btn.disabled = false;
-      }
-    }
-    
-    function toggleAutoRefresh() {
-      const checkbox = document.getElementById('autoRefresh');
-      if (checkbox.checked) {
-        fetchData();
-        autoRefreshInterval = setInterval(fetchData, 30000);
-      } else {
-        clearInterval(autoRefreshInterval);
-        autoRefreshInterval = null;
-      }
-    }
   </script>
 </body>
 </html>

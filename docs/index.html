@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation - bz2api.js</title>
+  <meta name="description" content="Complete documentation for bz2api.js - API reference, data structures, configuration options, and examples.">
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../css/landing.css">
+  
+  <!-- Theme Script (load early to prevent flash) -->
+  <script src="../js/theme.js"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="../">bz2api.js</a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center gap-2">
+          <li class="nav-item">
+            <a class="nav-link" href="../">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="../demo/">Demo</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="./">Docs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/phu54321/bz2api.js" target="_blank">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+            </a>
+          </li>
+          <li class="nav-item ms-2">
+            <button class="theme-toggle" type="button" aria-label="Toggle theme">☀️</button>
+          </li>
+          <li class="nav-item ms-2">
+            <a class="btn btn-primary-custom btn-sm" href="../bz2api.js" download>Download</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container" style="padding-top: 100px; padding-bottom: 60px;">
+    <div class="row">
+      <!-- Sidebar -->
+      <div class="col-lg-3">
+        <div class="docs-sidebar">
+          <nav class="docs-nav">
+            <h6 class="text-muted text-uppercase small mb-3">Getting Started</h6>
+            <a href="#installation" class="nav-link">Installation</a>
+            <a href="#quick-start" class="nav-link">Quick Start</a>
+            
+            <h6 class="text-muted text-uppercase small mb-3 mt-4">API Reference</h6>
+            <a href="#fetchSessions" class="nav-link">fetchSessions()</a>
+            <a href="#fetchRaw" class="nav-link">fetchRaw()</a>
+            <a href="#fetchMapData" class="nav-link">fetchMapData()</a>
+            
+            <h6 class="text-muted text-uppercase small mb-3 mt-4">Data Structures</h6>
+            <a href="#session-object" class="nav-link">Session Object</a>
+            <a href="#player-object" class="nav-link">Player Object</a>
+            <a href="#data-cache" class="nav-link">Data Cache</a>
+            
+            <h6 class="text-muted text-uppercase small mb-3 mt-4">Configuration</h6>
+            <a href="#options" class="nav-link">Options</a>
+            <a href="#cors-proxies" class="nav-link">CORS Proxies</a>
+            
+            <h6 class="text-muted text-uppercase small mb-3 mt-4">Advanced</h6>
+            <a href="#server-side" class="nav-link">Server-Side Usage</a>
+            <a href="#constants" class="nav-link">Constants</a>
+          </nav>
+        </div>
+      </div>
+      
+      <!-- Content -->
+      <div class="col-lg-9">
+        <div class="docs-content">
+          <h1 class="mb-4">Documentation</h1>
+          <p class="lead text-secondary mb-5">Complete reference for the bz2api.js library.</p>
+          
+          <!-- Installation -->
+          <h2 id="installation">Installation</h2>
+          <p>Include the library in your project:</p>
+          
+          <h5>Browser (Script Tag)</h5>
+          <div class="code-block mb-4">
+<pre><code>&lt;<span class="code-keyword">script</span> <span class="code-function">src</span>=<span class="code-string">"bz2api.js"</span>&gt;&lt;/<span class="code-keyword">script</span>&gt;</code></pre>
+          </div>
+          
+          <h5>Node.js (CommonJS)</h5>
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> BZ2API = <span class="code-function">require</span>(<span class="code-string">'./bz2api.js'</span>);</code></pre>
+          </div>
+          
+          <!-- Quick Start -->
+          <h2 id="quick-start">Quick Start</h2>
+          <div class="code-block mb-4">
+<pre><code><span class="code-comment">// Basic usage - fetch all sessions</span>
+<span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>();
+<span class="code-function">console.log</span>(result.sessions);
+
+<span class="code-comment">// With enrichment options</span>
+<span class="code-keyword">const</span> enriched = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>({
+  enrichMaps: <span class="code-keyword">true</span>,     <span class="code-comment">// Fetch map images/names</span>
+  enrichVsrMaps: <span class="code-keyword">true</span>  <span class="code-comment">// Add VSR map metadata</span>
+});
+
+<span class="code-comment">// Access session data</span>
+enriched.sessions.<span class="code-function">forEach</span>(session => {
+  <span class="code-function">console.log</span>(session.name, session.state);
+  <span class="code-function">console.log</span>(session.players.<span class="code-function">map</span>(p => p.name));
+});</code></pre>
+          </div>
+          
+          <!-- fetchSessions -->
+          <h2 id="fetchSessions">fetchSessions(options?)</h2>
+          <p>Fetches and parses all active multiplayer sessions.</p>
+          
+          <h5>Parameters</h5>
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>enrichMaps</code></td>
+                <td>boolean</td>
+                <td>false</td>
+                <td>Fetch map metadata (images, descriptions, team names)</td>
+              </tr>
+              <tr>
+                <td><code>enrichVsrMaps</code></td>
+                <td>boolean</td>
+                <td>false</td>
+                <td>Add VSR map data (pools, loose scrap, author)</td>
+              </tr>
+              <tr>
+                <td><code>vsrMapData</code></td>
+                <td>array</td>
+                <td>undefined</td>
+                <td>Custom VSR map data to override/merge with built-in data</td>
+              </tr>
+              <tr>
+                <td><code>vsrMapDataMode</code></td>
+                <td>string</td>
+                <td>undefined</td>
+                <td>Required with vsrMapData: <code>'replace'</code> or <code>'merge'</code></td>
+              </tr>
+              <tr>
+                <td><code>corsProxies</code></td>
+                <td>array</td>
+                <td>Built-in list</td>
+                <td>Custom CORS proxy URLs (browser only)</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <h5>Returns</h5>
+          <div class="code-block mb-4">
+<pre><code>{
+  sessions: Session[],      <span class="code-comment">// Parsed session objects</span>
+  timestamp: <span class="code-string">"ISO string"</span>,  <span class="code-comment">// Fetch timestamp</span>
+  rawResponse: Object,      <span class="code-comment">// Original API response</span>
+  dataCache: Object,        <span class="code-comment">// Consolidated player/mod data</span>
+  enrichedMaps: boolean,    <span class="code-comment">// Whether map enrichment was used</span>
+  enrichedVsrMaps: boolean  <span class="code-comment">// Whether VSR enrichment was used</span>
+}</code></pre>
+          </div>
+          
+          <!-- fetchRaw -->
+          <h2 id="fetchRaw">fetchRaw(options?)</h2>
+          <p>Fetches raw API data without parsing. Useful for debugging or custom parsing.</p>
+          
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> raw = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchRaw</span>();
+<span class="code-function">console.log</span>(raw.GET); <span class="code-comment">// Array of raw session objects</span></code></pre>
+          </div>
+          
+          <!-- fetchMapData -->
+          <h2 id="fetchMapData">fetchMapData(mapFile, modId)</h2>
+          <p>Fetches metadata for a specific map from the external assets API.</p>
+          
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> mapData = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchMapData</span>(<span class="code-string">'rckcnynvsr'</span>, <span class="code-string">'1325933293'</span>);
+<span class="code-comment">// Returns: { name, description, image, teamNames, modNames }</span></code></pre>
+          </div>
+          
+          <!-- Session Object -->
+          <h2 id="session-object">Session Object</h2>
+          <p>Each session in the <code>sessions</code> array contains these fields:</p>
+          
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>id</code></td><td>string</td><td>RakNet session ID</td></tr>
+              <tr><td><code>guid</code></td><td>string</td><td>Decoded session GUID (hex)</td></tr>
+              <tr><td><code>name</code></td><td>string</td><td>Session name</td></tr>
+              <tr><td><code>version</code></td><td>string</td><td>Game version</td></tr>
+              <tr><td><code>state</code></td><td>string</td><td>"PreGame", "InGame", or "PostGame"</td></tr>
+              <tr><td><code>stateDetail</code></td><td>string</td><td>"waiting", "playing", "loading"</td></tr>
+              <tr><td><code>gameType</code></td><td>string</td><td>"DM" or "STRAT"</td></tr>
+              <tr><td><code>gameTypeName</code></td><td>string</td><td>"Deathmatch" or "Strategy"</td></tr>
+              <tr><td><code>gameMode</code></td><td>string</td><td>"DM", "STRAT", or "MPI"</td></tr>
+              <tr><td><code>gameModeName</code></td><td>string</td><td>Full mode name (e.g., "Team Strategy")</td></tr>
+              <tr><td><code>isTeamGame</code></td><td>boolean</td><td>Whether teams are used</td></tr>
+              <tr><td><code>mapFile</code></td><td>string</td><td>Map filename without extension</td></tr>
+              <tr><td><code>mapName</code></td><td>string</td><td>Enriched map title (if available)</td></tr>
+              <tr><td><code>mapImageUrl</code></td><td>string</td><td>Enriched map preview image URL</td></tr>
+              <tr><td><code>players</code></td><td>Player[]</td><td>Array of player objects</td></tr>
+              <tr><td><code>playerCount</code></td><td>number</td><td>Current player count</td></tr>
+              <tr><td><code>maxPlayers</code></td><td>number</td><td>Maximum allowed players</td></tr>
+              <tr><td><code>commanders</code></td><td>string[]</td><td>Names of commanders in the game</td></tr>
+              <tr><td><code>hiddenPlayers</code></td><td>string[]</td><td>Names of hidden/lurking players</td></tr>
+              <tr><td><code>mods</code></td><td>Mod[]</td><td>Array of mod objects</td></tr>
+              <tr><td><code>primaryMod</code></td><td>string</td><td>Main mod ID</td></tr>
+              <tr><td><code>isStock</code></td><td>boolean</td><td>Whether using stock (no mods)</td></tr>
+              <tr><td><code>gameBalance</code></td><td>string</td><td>"Stock" or "VSR"</td></tr>
+              <tr><td><code>hasPassword</code></td><td>boolean</td><td>Password protected</td></tr>
+              <tr><td><code>isLocked</code></td><td>boolean</td><td>Session locked</td></tr>
+              <tr><td><code>nat</code></td><td>object</td><td>NAT type info (id, name, canDirectConnect)</td></tr>
+              <tr><td><code>steamJoinUrl</code></td><td>string</td><td>Steam protocol join URL</td></tr>
+              <tr><td><code>tps</code></td><td>number</td><td>Ticks per second</td></tr>
+              <tr><td><code>maxPing</code></td><td>number</td><td>Maximum allowed ping (ms)</td></tr>
+              <tr><td><code>gameTimeMinutes</code></td><td>number</td><td>Game time elapsed</td></tr>
+              <tr><td><code>timeLimitMinutes</code></td><td>number</td><td>Time limit (null if none)</td></tr>
+              <tr><td><code>killLimit</code></td><td>number</td><td>Kill limit (null if none)</td></tr>
+            </tbody>
+          </table>
+          
+          <p class="mt-3"><strong>VSR-specific fields</strong> (when <code>enrichVsrMaps: true</code>):</p>
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>vsrPools</code></td><td>number|null</td><td>Number of biometal pools</td></tr>
+              <tr><td><code>vsrLoose</code></td><td>number|null</td><td>Amount of loose scrap</td></tr>
+              <tr><td><code>vsrAuthor</code></td><td>string|null</td><td>Map author</td></tr>
+              <tr><td><code>vsrMapSize</code></td><td>number|null</td><td>Map dimensions</td></tr>
+              <tr><td><code>vsrBaseToBase</code></td><td>number|null</td><td>Distance between bases</td></tr>
+            </tbody>
+          </table>
+          
+          <!-- Player Object -->
+          <h2 id="player-object">Player Object</h2>
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>name</code></td><td>string</td><td>Player display name</td></tr>
+              <tr><td><code>rawId</code></td><td>string</td><td>Raw ID from API (e.g., "S76561198...")</td></tr>
+              <tr><td><code>steamId</code></td><td>string|null</td><td>Steam ID (if Steam user)</td></tr>
+              <tr><td><code>gogId</code></td><td>string|null</td><td>GOG Galaxy ID (if GOG user)</td></tr>
+              <tr><td><code>platform</code></td><td>string</td><td>"Steam" or "GOG"</td></tr>
+              <tr><td><code>profileUrl</code></td><td>string|null</td><td>Link to player's profile</td></tr>
+              <tr><td><code>kills</code></td><td>number|null</td><td>Kill count</td></tr>
+              <tr><td><code>deaths</code></td><td>number|null</td><td>Death count</td></tr>
+              <tr><td><code>score</code></td><td>number|null</td><td>Score</td></tr>
+              <tr><td><code>team</code></td><td>number|null</td><td>Team number (1 or 2)</td></tr>
+              <tr><td><code>isHost</code></td><td>boolean</td><td>Is the session host</td></tr>
+              <tr><td><code>isTeamLeader</code></td><td>boolean</td><td>Is a team leader</td></tr>
+              <tr><td><code>isCommander</code></td><td>boolean</td><td>Is the commander</td></tr>
+              <tr><td><code>isHidden</code></td><td>boolean</td><td>Is hidden/lurking</td></tr>
+            </tbody>
+          </table>
+          
+          <!-- Data Cache -->
+          <h2 id="data-cache">Data Cache</h2>
+          <p>The <code>dataCache</code> object consolidates unique players and mods across all sessions:</p>
+          
+          <div class="code-block mb-4">
+<pre><code>{
+  players: {
+    <span class="code-string">"76561198..."</span>: {
+      steamId: <span class="code-string">"76561198..."</span>,
+      profileUrl: <span class="code-string">"https://..."</span>
+    }
+  },
+  mods: {
+    <span class="code-string">"1325933293"</span>: {
+      id: <span class="code-string">"1325933293"</span>,
+      name: <span class="code-string">"Vet Strat Recycler Variant"</span>,
+      workshopUrl: <span class="code-string">"https://..."</span>
+    }
+  }
+}</code></pre>
+          </div>
+          
+          <!-- Options -->
+          <h2 id="options">Configuration Options</h2>
+          <p>All options can be passed to <code>fetchSessions()</code> or <code>fetchRaw()</code>:</p>
+          
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>({
+  <span class="code-comment">// Map enrichment (external API calls)</span>
+  enrichMaps: <span class="code-keyword">true</span>,
+  
+  <span class="code-comment">// VSR map metadata (built-in data)</span>
+  enrichVsrMaps: <span class="code-keyword">true</span>,
+  
+  <span class="code-comment">// Custom VSR data (must specify mode)</span>
+  vsrMapData: myCustomData,
+  vsrMapDataMode: <span class="code-string">'merge'</span>,  <span class="code-comment">// or 'replace'</span>
+  
+  <span class="code-comment">// Custom CORS proxies (browser only)</span>
+  corsProxies: [
+    <span class="code-string">'https://myproxy.com/?url='</span>
+  ]
+});</code></pre>
+          </div>
+          
+          <!-- CORS Proxies -->
+          <h2 id="cors-proxies">CORS Proxies</h2>
+          <p>In browsers, the library automatically handles CORS by trying direct fetch first, then falling back to public proxies:</p>
+          
+          <div class="code-block mb-4">
+<pre><code><span class="code-comment">// Default proxies (used in order)</span>
+<span class="code-keyword">const</span> CORS_PROXIES = [
+  <span class="code-string">'https://corsproxy.io/?'</span>,
+  <span class="code-string">'https://api.allorigins.win/raw?url='</span>,
+  <span class="code-string">'https://api.codetabs.com/v1/proxy?quest='</span>
+];
+
+<span class="code-comment">// Override with custom proxies</span>
+BZ2API.<span class="code-function">fetchSessions</span>({
+  corsProxies: [<span class="code-string">'https://my-proxy.com/?url='</span>]
+});</code></pre>
+          </div>
+          
+          <div class="alert alert-info">
+            <strong>Note:</strong> Server-side (Node.js) doesn't need CORS proxies. The library will make direct requests automatically.
+          </div>
+          
+          <!-- Server-Side Usage -->
+          <h2 id="server-side">Server-Side Usage</h2>
+          <p>The library works in Node.js 18+ (native fetch) or with a fetch polyfill:</p>
+          
+          <h5>Express.js Example</h5>
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> express = <span class="code-function">require</span>(<span class="code-string">'express'</span>);
+<span class="code-keyword">const</span> BZ2API = <span class="code-function">require</span>(<span class="code-string">'./bz2api.js'</span>);
+
+<span class="code-keyword">const</span> app = <span class="code-function">express</span>();
+
+app.<span class="code-function">get</span>(<span class="code-string">'/api/sessions'</span>, <span class="code-keyword">async</span> (req, res) => {
+  <span class="code-keyword">try</span> {
+    <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>({
+      enrichMaps: <span class="code-keyword">true</span>
+    });
+    res.<span class="code-function">json</span>(result);
+  } <span class="code-keyword">catch</span> (err) {
+    res.<span class="code-function">status</span>(<span class="code-number">500</span>).<span class="code-function">json</span>({ error: err.message });
+  }
+});
+
+app.<span class="code-function">listen</span>(<span class="code-number">3000</span>);</code></pre>
+          </div>
+          
+          <h5>Plain Node.js</h5>
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> BZ2API = <span class="code-function">require</span>(<span class="code-string">'./bz2api.js'</span>);
+
+(<span class="code-keyword">async</span> () => {
+  <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>();
+  
+  <span class="code-function">console.log</span>(<span class="code-string">`Found </span>${result.sessions.length}<span class="code-string"> sessions`</span>);
+  
+  result.sessions.<span class="code-function">forEach</span>(s => {
+    <span class="code-function">console.log</span>(<span class="code-string">`- </span>${s.name}<span class="code-string">: </span>${s.playerCount}<span class="code-string"> players`</span>);
+  });
+})();</code></pre>
+          </div>
+          
+          <!-- Constants -->
+          <h2 id="constants">Exported Constants</h2>
+          <p>The library exports several constants for advanced use:</p>
+          
+          <div class="code-block mb-4">
+<pre><code>BZ2API.API_URL          <span class="code-comment">// Rebellion API endpoint</span>
+BZ2API.CORS_PROXIES     <span class="code-comment">// Default proxy list</span>
+BZ2API.MAP_API_BASE     <span class="code-comment">// Map assets API base URL</span>
+BZ2API.VSR_MOD_ID       <span class="code-comment">// VSR mod Steam ID</span>
+BZ2API.VSR_MAP_DATA_RAW <span class="code-comment">// Built-in VSR map data array</span></code></pre>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer-custom">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5 class="mb-3" style="color: var(--accent-blue); font-family: 'JetBrains Mono', monospace;">bz2api.js</h5>
+          <p class="small mb-0">
+            A JavaScript library for Battlezone 2: Combat Commander multiplayer session data.
+          </p>
+        </div>
+        <div class="col-md-3">
+          <h6 class="mb-3">Links</h6>
+          <ul class="list-unstyled small">
+            <li><a href="../demo/">Demo</a></li>
+            <li><a href="./">Documentation</a></li>
+            <li><a href="https://github.com/phu54321/bz2api.js" target="_blank">GitHub</a></li>
+          </ul>
+        </div>
+        <div class="col-md-3">
+          <h6 class="mb-3">Resources</h6>
+          <ul class="list-unstyled small">
+            <li><a href="https://store.steampowered.com/app/624970/Battlezone_Combat_Commander/" target="_blank">BZ2 on Steam</a></li>
+            <li><a href="https://www.gog.com/game/battlezone_combat_commander" target="_blank">BZ2 on GOG</a></li>
+          </ul>
+        </div>
+      </div>
+      <hr class="my-4" style="border-color: var(--border-color);">
+      <div class="text-center small">
+        <p class="mb-0">MIT License © 2026</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Docs navigation highlighting -->
+  <script>
+    // Highlight active section in sidebar
+    const sections = document.querySelectorAll('h2[id]');
+    const navLinks = document.querySelectorAll('.docs-nav .nav-link');
+    
+    function highlightNav() {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.scrollY >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+      
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    }
+    
+    window.addEventListener('scroll', highlightNav);
+    highlightNav();
+  </script>
+</body>
+</html>
