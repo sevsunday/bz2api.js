@@ -281,21 +281,22 @@
       letter-spacing: 0.02em;
     }
     
-    .badge.state-pregame { background: rgba(210, 153, 34, 0.2); color: var(--accent-orange); }
+    .badge.state-pregame { background: rgba(139, 148, 158, 0.2); color: #8b949e; }
     .badge.state-ingame { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
     .badge.state-postgame { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
-    .badge.type-dm { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+    .badge.type-dm { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
     .badge.type-strat { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
-    .badge.locked { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
-    .badge.password { background: rgba(227, 179, 65, 0.15); color: var(--accent-yellow); }
+    .badge.locked { background: rgba(227, 179, 65, 0.15); color: var(--accent-yellow); }
+    .badge.password { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
     .badge.dedicated { background: rgba(57, 197, 207, 0.15); color: var(--accent-cyan); }
-    .badge.vsr { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
+    .badge.vsr { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
     
     /* Join Button */
     .join-btn {
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      margin-left: 8px;
       background: rgba(63, 185, 80, 0.15);
       color: var(--accent-green);
       padding: 3px 8px;
@@ -1040,8 +1041,8 @@
       // VSR balance badge
       if (session.gameBalance === 'VSR') badges.push('<span class="badge vsr">VSR</span>');
       
-      if (session.isLocked) badges.push('<span class="badge locked">Locked</span>');
-      if (session.hasPassword) badges.push('<span class="badge password">Pass</span>');
+      if (session.isLocked) badges.push('<span class="badge locked">Lock</span>');
+      if (session.hasPassword) badges.push('<span class="badge password">PWD</span>');
       
       // Join button (only if session has a valid join URL)
       const joinBtnHtml = session.steamJoinUrl ? 
