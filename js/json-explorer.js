@@ -416,26 +416,33 @@ class JsonExplorer {
   getTooltip(path) {
     if (!path || !this.schema) return null;
     
+    // Helper to convert bracket notation to dot wildcard notation
+    // e.g., "players[0].name" -> "players.*.name"
+    const toWildcardPath = (p) => p.replace(/\[(\d+)\]/g, '.*');
+    
     // Direct match
     if (this.schema[path]) {
       return this.schema[path];
     }
     
-    // Try wildcard patterns (e.g., sessions.*.name matches sessions.0.name)
-    // Convert path to pattern by replacing array indices with *
-    const patterns = [path];
+    // Build list of patterns to try
+    const patterns = new Set();
+    patterns.add(path);
     
-    // Generate wildcard versions
-    let wildcardPath = path.replace(/\[\d+\]/g, '.*');
-    if (wildcardPath !== path) {
-      patterns.push(wildcardPath);
-    }
+    // Convert bracket indices to wildcard: players[0] -> players.*
+    const wildcardPath = toWildcardPath(path);
+    patterns.add(wildcardPath);
     
-    // Also try with [*] notation
-    wildcardPath = path.replace(/\[\d+\]/g, '[*]');
-    if (wildcardPath !== path) {
-      patterns.push(wildcardPath);
-    }
+    // For single-session view, also try prefixing with "sessions.*"
+    // This handles paths like "name" -> "sessions.*.name"
+    patterns.add(`sessions.*.${path}`);
+    patterns.add(`sessions.*.${wildcardPath}`);
+    
+    // For nested objects like "nat.id" -> "sessions.*.nat.id"
+    // Already handled above
+    
+    // For arrays inside single session like "players[0]" -> "sessions.*.players.*"
+    // Already handled above with wildcardPath
     
     for (const pattern of patterns) {
       if (this.schema[pattern]) {

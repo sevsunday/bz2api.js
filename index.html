@@ -632,6 +632,8 @@
     let jsonPanelWidth = 50; // percentage
     let jsonExplorer = null;
     let schemaData = null;
+    let lastFetchResult = null; // Store last fetch result for session selection
+    let selectedSessionIndex = null; // Currently selected session index
     
     // ============ Initialize JSON Explorer ============
     async function initJsonExplorer() {
@@ -797,7 +799,7 @@
       `;
     }
     
-    function renderSession(session) {
+    function renderSession(session, index) {
       const stateClass = session.state === 'InGame' ? 'state-ingame' : 
                         session.state === 'PreGame' ? 'state-pregame' : 'state-postgame';
       const typeClass = session.gameType === 'DM' ? 'type-dm' : 'type-strat';
@@ -830,7 +832,7 @@
         '<div style="padding: 8px; color: var(--text-muted); font-size: 0.8em;">No players</div>';
       
       return `
-        <div class="session-card" onclick="toggleSession(this)">
+        <div class="session-card" data-session-index="${index}" onclick="toggleSession(this, ${index})">
           <div class="session-header">
             <div class="session-top">
               <div class="session-name">${escapeHtml(session.name)} ${joinBtnHtml}</div>
@@ -909,8 +911,62 @@
       `;
     }
     
-    function toggleSession(card) {
+    function toggleSession(card, sessionIndex) {
+      const wasExpanded = card.classList.contains('expanded');
+      
+      // Collapse any other expanded cards first
+      document.querySelectorAll('.session-card.expanded').forEach(otherCard => {
+        if (otherCard !== card) {
+          otherCard.classList.remove('expanded');
+        }
+      });
+      
       card.classList.toggle('expanded');
+      const isNowExpanded = card.classList.contains('expanded');
+      
+      // Update JSON explorer based on selection state
+      if (isNowExpanded && lastFetchResult) {
+        // Show only this session's data
+        selectedSessionIndex = sessionIndex;
+        showSessionInExplorer(sessionIndex);
+      } else {
+        // Collapsed - show all data
+        selectedSessionIndex = null;
+        showAllDataInExplorer();
+      }
+    }
+    
+    function showSessionInExplorer(index) {
+      if (!jsonExplorer || !lastFetchResult) return;
+      
+      const session = lastFetchResult.sessions[index];
+      if (!session) return;
+      
+      // Parsed view (clean, no _raw)
+      const { _raw, ...cleanSession } = session;
+      
+      // Raw view - get the corresponding raw session
+      const rawSession = lastFetchResult.rawResponse?.GET?.[index] || null;
+      
+      jsonExplorer.setData(cleanSession, rawSession);
+    }
+    
+    function showAllDataInExplorer() {
+      if (!jsonExplorer || !lastFetchResult) return;
+      
+      // Show full data
+      const cleanedSessions = lastFetchResult.sessions.map(session => {
+        const { _raw, ...cleanSession } = session;
+        return cleanSession;
+      });
+      
+      const parsedData = {
+        timestamp: lastFetchResult.timestamp,
+        sessionCount: lastFetchResult.sessions.length,
+        sessions: cleanedSessions
+      };
+      
+      jsonExplorer.setData(parsedData, lastFetchResult.rawResponse);
     }
     
     function updateStats(sessions) {
@@ -950,18 +1006,22 @@
       try {
         const result = await BZ2API.fetchSessions();
         
+        // Store result for session selection feature
+        lastFetchResult = result;
+        selectedSessionIndex = null; // Reset selection on refresh
+        
         // Update sessions
         const container = document.getElementById('sessionsContainer');
         if (result.sessions.length === 0) {
           container.innerHTML = '<div class="empty-state">No active sessions found.</div>';
         } else {
-          container.innerHTML = result.sessions.map(renderSession).join('');
+          container.innerHTML = result.sessions.map((session, index) => renderSession(session, index)).join('');
         }
         
         // Update stats
         updateStats(result.sessions);
         
-        // Update JSON Explorer
+        // Update JSON Explorer (show all data)
         updateJsonExplorer(result);
         
         setStatus(`${new Date().toLocaleTimeString()}`, 'success');
