@@ -786,6 +786,10 @@ const BZ2API = (function() {
     const rawData = await fetchRaw(options);
     
     const sessions = (rawData.GET || []).map(parseSession);
+    
+    // Sort sessions by ID for consistent ordering across refreshes
+    sessions.sort((a, b) => a.id.localeCompare(b.id));
+    
     const dataCache = buildDataCache(sessions);
     
     return {
