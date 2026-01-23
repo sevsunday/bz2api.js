@@ -460,6 +460,166 @@ Map data is cached in memory to avoid redundant API calls. Use `clearMapCache()`
 
 ---
 
+## Server-Side Usage with Steam/GOG Enrichment
+
+### Why Steam/GOG Data Isn't Built-In
+
+The library generates **profile URLs** for Steam and GOG players, but does not fetch avatars, nicknames, or other profile data. This is intentional:
+
+- **Steam Web API** requires an API key that must remain secret
+- **GOG Galaxy API** has similar restrictions
+- Exposing API keys in client-side code is a security risk
+
+### Recommended Architecture: Server as Proxy
+
+The cleanest approach is to run `bz2api.js` on your server, enrich the data with Steam/GOG APIs, and expose your own endpoint:
+
+```
+[Rebellion API] → [Your Server] → [Your Client]
+                       ↓
+                  [Steam API]
+```
+
+### Example: Node.js with Express
+
+```javascript
+const express = require('express');
+const BZ2API = require('./bz2api.js');
+
+const STEAM_API_KEY = process.env.STEAM_API_KEY;
+
+async function getSteamPlayerSummaries(steamIds) {
+  if (steamIds.length === 0) return {};
+  const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${steamIds.join(',')}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  
+  const players = {};
+  for (const player of data.response.players || []) {
+    players[player.steamid] = {
+      nickname: player.personaname,
+      avatar: player.avatarfull
+    };
+  }
+  return players;
+}
+
+const app = express();
+
+app.get('/api/sessions', async (req, res) => {
+  try {
+    // Use bz2api.js for full parsing (Base64, game modes, teams, etc.)
+    const result = await BZ2API.fetchSessions({ enrichMaps: true });
+    
+    // Collect all unique Steam IDs
+    const steamIds = new Set();
+    for (const session of result.sessions) {
+      for (const player of session.players) {
+        if (player.steamId) steamIds.add(player.steamId);
+      }
+    }
+    
+    // Fetch Steam data in bulk and enrich players
+    const steamData = await getSteamPlayerSummaries([...steamIds]);
+    for (const session of result.sessions) {
+      for (const player of session.players) {
+        if (player.steamId && steamData[player.steamId]) {
+          Object.assign(player, steamData[player.steamId]);
+        }
+      }
+    }
+    
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.listen(3000, () => console.log('Server running on http://localhost:3000'));
+```
+
+### Example: Plain Node.js (no framework)
+
+```javascript
+const http = require('http');
+const BZ2API = require('./bz2api.js');
+
+const STEAM_API_KEY = process.env.STEAM_API_KEY;
+
+async function getSteamPlayerSummaries(steamIds) {
+  if (steamIds.length === 0) return {};
+  const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${steamIds.join(',')}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  
+  const players = {};
+  for (const player of data.response.players || []) {
+    players[player.steamid] = {
+      nickname: player.personaname,
+      avatar: player.avatarfull
+    };
+  }
+  return players;
+}
+
+const server = http.createServer(async (req, res) => {
+  if (req.url === '/api/sessions' && req.method === 'GET') {
+    try {
+      // Use bz2api.js for full parsing
+      const result = await BZ2API.fetchSessions({ enrichMaps: true });
+      
+      // Collect and fetch Steam data
+      const steamIds = new Set();
+      for (const session of result.sessions) {
+        for (const player of session.players) {
+          if (player.steamId) steamIds.add(player.steamId);
+        }
+      }
+      
+      const steamData = await getSteamPlayerSummaries([...steamIds]);
+      for (const session of result.sessions) {
+        for (const player of session.players) {
+          if (player.steamId && steamData[player.steamId]) {
+            Object.assign(player, steamData[player.steamId]);
+          }
+        }
+      }
+      
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(result));
+    } catch (error) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: error.message }));
+    }
+  } else {
+    res.writeHead(404);
+    res.end('Not Found');
+  }
+});
+
+server.listen(3000, () => console.log('Server running on http://localhost:3000'));
+```
+
+> **Why Node.js only?** The `bz2api.js` library handles complex parsing logic including Windows-1252 character decoding, RakNet GUID unpacking, game mode bit fields, and team slot mapping. Using Node.js lets you leverage all this parsing directly. Other languages (Python, C#, etc.) would require reimplementing this logic from scratch.
+
+### Client-Side Usage
+
+With the server handling enrichment, your client becomes simple:
+
+```javascript
+// No need for bz2api.js on the client - server does the work
+fetch('/api/sessions')
+  .then(response => response.json())
+  .then(result => {
+    // result.sessions now includes avatar/nickname from Steam
+    renderSessions(result.sessions);
+  });
+```
+
+This architecture keeps your API keys secure while providing a fully-enriched data feed to your frontend.
+
+---
+
 ## License
 
 MIT
