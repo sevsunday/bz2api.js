@@ -564,6 +564,23 @@
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
+      align-items: center;
+    }
+    
+    .mods-toggle {
+      background: rgba(139, 148, 158, 0.15);
+      color: #8b949e;
+      border: 1px solid rgba(139, 148, 158, 0.3);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 0.7em;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .mods-toggle:hover {
+      background: rgba(139, 148, 158, 0.25);
+      color: #c9d1d9;
     }
     
     /* Detail Grid */
@@ -1017,7 +1034,7 @@
         return '<span class="mod-link stock">Stock</span>';
       }
       
-      return mods.map(mod => {
+      const renderMod = (mod) => {
         if (mod.id === '0') {
           return '<span class="mod-link stock">Stock</span>';
         }
@@ -1025,7 +1042,37 @@
           return `<a href="${mod.workshopUrl}" class="mod-link" target="_blank" onclick="event.stopPropagation()" title="View on Steam Workshop">${mod.name || mod.id}</a>`;
         }
         return `<span class="mod-link">${mod.name || mod.id}</span>`;
-      }).join('');
+      };
+      
+      const maxVisible = 3;
+      if (mods.length <= maxVisible) {
+        return mods.map(renderMod).join('');
+      }
+      
+      const visibleMods = mods.slice(0, maxVisible).map(renderMod).join('');
+      const hiddenMods = mods.slice(maxVisible).map(renderMod).join('');
+      const hiddenCount = mods.length - maxVisible;
+      
+      return `
+        <span class="mods-visible">${visibleMods}</span>
+        <span class="mods-hidden" style="display: none;">${hiddenMods}</span>
+        <button class="mods-toggle" onclick="event.stopPropagation(); toggleMods(this)">+${hiddenCount} more</button>
+      `;
+    }
+    
+    function toggleMods(btn) {
+      const container = btn.parentElement;
+      const hidden = container.querySelector('.mods-hidden');
+      const isExpanded = hidden.style.display !== 'none';
+      
+      if (isExpanded) {
+        hidden.style.display = 'none';
+        const count = container.querySelectorAll('.mods-hidden .mod-link').length;
+        btn.textContent = `+${count} more`;
+      } else {
+        hidden.style.display = 'inline';
+        btn.textContent = 'Show less';
+      }
     }
     
     function renderSession(session, index) {
