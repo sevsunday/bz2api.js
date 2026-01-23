@@ -9,7 +9,6 @@
       --bg-primary: #0d1117;
       --bg-secondary: #161b22;
       --bg-tertiary: #21262d;
-      --bg-hover: #30363d;
       --accent-blue: #58a6ff;
       --accent-orange: #d29922;
       --accent-green: #3fb950;
@@ -23,34 +22,37 @@
       --border: #30363d;
     }
     
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
     
     body {
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
-      margin: 0;
-      padding: 20px;
-      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
     }
     
-    h1 {
-      color: var(--accent-blue);
-      font-weight: 600;
-      margin: 0;
-      font-size: 1.25em;
-    }
-    
+    /* Header Bar */
     .header-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 16px;
-      padding: 12px 16px;
+      padding: 10px 16px;
       background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    
+    .header-bar h1 {
+      color: var(--accent-blue);
+      font-weight: 600;
+      font-size: 1.1em;
     }
     
     .header-controls {
@@ -63,11 +65,11 @@
       background: var(--accent-blue);
       color: var(--bg-primary);
       border: none;
-      padding: 10px 20px;
+      padding: 6px 14px;
       font-family: inherit;
-      font-size: 0.9em;
+      font-size: 0.85em;
       cursor: pointer;
-      border-radius: 6px;
+      border-radius: 4px;
       font-weight: 600;
       transition: all 0.15s;
     }
@@ -75,76 +77,227 @@
     button:hover { background: #79c0ff; }
     button:disabled { background: var(--text-muted); cursor: not-allowed; }
     
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 0.8em;
+      cursor: pointer;
+    }
+    
+    .toggle-label input {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--accent-blue);
+    }
+    
     .status {
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 0.85em;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.8em;
     }
     
     .status.loading { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
     .status.success { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
     .status.error { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
     
-    .toggle-label {
+    /* Main Split Layout */
+    .main-container {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-secondary);
-      font-size: 0.85em;
-      cursor: pointer;
-    }
-    
-    .toggle-label input {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--accent-blue);
-    }
-    
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 400px;
-      gap: 20px;
-    }
-    
-    @media (max-width: 1100px) {
-      .layout { grid-template-columns: 1fr; }
-    }
-    
-    .panel {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      flex: 1;
       overflow: hidden;
     }
     
-    .panel-header {
+    /* Left Panel - Sessions */
+    .sessions-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 300px;
+    }
+    
+    /* Stats Bar - matches JSON header height */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 10px 16px;
       background: var(--bg-tertiary);
-      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      min-height: 42px;
+    }
+    
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85em;
+    }
+    
+    .stat-item .value {
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+    
+    .stat-item .label {
+      color: var(--text-muted);
+    }
+    
+    .sessions-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    
+    /* Right Panel - JSON Viewer */
+    .json-panel {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      background: var(--bg-secondary);
+      transition: width 0.2s ease;
+    }
+    
+    .json-panel.collapsed {
+      width: 40px;
+      min-width: 40px;
+    }
+    
+    /* JSON Header - matches Stats Bar height */
+    .json-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 10px 16px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      min-height: 42px;
     }
     
-    .panel-header h2 {
-      margin: 0;
-      font-size: 0.95em;
+    .json-header h2 {
+      font-size: 0.9em;
       font-weight: 600;
-      color: var(--accent-orange);
+      color: var(--accent-cyan);
+      white-space: nowrap;
     }
     
-    .panel-content {
+    .collapse-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      font-size: 0.9em;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .collapse-btn:hover {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+    
+    /* Collapsed state styling */
+    .json-panel.collapsed .json-header {
+      flex-direction: column;
+      padding: 12px 8px;
+      height: 100%;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+    
+    .json-panel.collapsed .json-header h2 {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 0.8em;
+    }
+    
+    .json-panel.collapsed .json-tabs,
+    .json-panel.collapsed .json-content {
+      display: none;
+    }
+    
+    /* JSON Tabs */
+    .json-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    
+    .json-tab {
+      padding: 5px 14px;
+      font-size: 0.75em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .json-tab:hover {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .json-tab.active {
+      background: var(--accent-blue);
+      color: var(--bg-primary);
+      border-color: var(--accent-blue);
+    }
+    
+    /* JSON Content */
+    .json-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .json-view {
+      flex: 1;
+      overflow: auto;
       padding: 12px;
-      max-height: 80vh;
-      overflow-y: auto;
+      background: var(--bg-primary);
+      margin: 8px;
+      border-radius: 6px;
+      min-height: 0;
+    }
+    
+    .json-view pre {
+      margin: 0;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.75em;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .json-view-label {
+      font-size: 0.7em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
     
     /* Session Cards */
     .session-card {
-      background: var(--bg-tertiary);
+      background: var(--bg-secondary);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
       overflow: hidden;
       transition: border-color 0.15s;
     }
@@ -153,7 +306,7 @@
     .session-card:last-child { margin-bottom: 0; }
     
     .session-header {
-      padding: 14px 16px;
+      padding: 12px 14px;
       cursor: pointer;
     }
     
@@ -161,30 +314,32 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 8px;
+      gap: 10px;
+      margin-bottom: 6px;
     }
     
     .session-name {
       font-weight: 600;
       color: var(--text-primary);
-      font-size: 1.05em;
+      font-size: 0.95em;
       word-break: break-word;
     }
     
     .session-badges {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       flex-shrink: 0;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
     
     .badge {
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.75em;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-size: 0.65em;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
     }
     
     .badge.state-pregame { background: rgba(210, 153, 34, 0.2); color: var(--accent-orange); }
@@ -200,7 +355,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      font-size: 0.85em;
+      font-size: 0.8em;
       color: var(--text-secondary);
     }
     
@@ -210,48 +365,48 @@
       gap: 4px;
     }
     
-    .session-meta .icon { opacity: 0.7; }
+    .session-meta .icon { opacity: 0.7; font-size: 0.95em; }
+    
+    .expand-icon {
+      color: var(--text-muted);
+      transition: transform 0.2s;
+      font-size: 0.75em;
+    }
+    
+    .session-card.expanded .expand-icon { transform: rotate(90deg); }
     
     .session-details {
       display: none;
-      padding: 0 16px 16px;
+      padding: 0 14px 14px;
       border-top: 1px solid var(--border);
     }
     
     .session-card.expanded .session-details { display: block; }
     
-    .expand-icon {
-      color: var(--text-muted);
-      transition: transform 0.2s;
-      font-size: 0.8em;
-    }
-    
-    .session-card.expanded .expand-icon { transform: rotate(90deg); }
-    
     /* Player List */
     .section-title {
-      font-size: 0.8em;
+      font-size: 0.7em;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
-      margin: 16px 0 8px;
+      margin: 12px 0 6px;
       font-weight: 600;
     }
     
     .player-list {
-      background: var(--bg-secondary);
-      border-radius: 6px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
       overflow: hidden;
     }
     
     .player {
-      display: grid;
-      grid-template-columns: 1fr auto auto auto auto;
-      gap: 8px;
-      padding: 8px 12px;
-      font-size: 0.9em;
-      border-bottom: 1px solid var(--border);
+      display: flex;
       align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      font-size: 0.8em;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
     }
     
     .player:last-child { border-bottom: none; }
@@ -261,176 +416,129 @@
       font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      flex: 1;
+      min-width: 100px;
+    }
+    
+    .player-name .host-badge,
+    .player-name .leader-badge {
+      font-size: 0.65em;
+      padding: 1px 4px;
+      border-radius: 2px;
     }
     
     .player-name .host-badge {
-      font-size: 0.7em;
-      padding: 2px 5px;
       background: rgba(88, 166, 255, 0.2);
       color: var(--accent-blue);
-      border-radius: 3px;
     }
     
     .player-name .leader-badge {
-      font-size: 0.7em;
-      padding: 2px 5px;
       background: rgba(227, 179, 65, 0.2);
       color: var(--accent-yellow);
-      border-radius: 3px;
     }
     
-    .player-stat {
-      color: var(--text-secondary);
+    .player-stats {
+      display: flex;
+      gap: 8px;
       font-size: 0.85em;
-      text-align: right;
-      min-width: 45px;
     }
     
-    .player-stat.kills { color: var(--accent-green); }
-    .player-stat.deaths { color: var(--accent-red); }
-    .player-stat.score { color: var(--accent-blue); }
+    .player-stats span {
+      min-width: 28px;
+      text-align: right;
+    }
+    
+    .player-stats .kills { color: var(--accent-green); }
+    .player-stats .deaths { color: var(--accent-red); }
+    .player-stats .score { color: var(--accent-blue); }
     
     .player-team {
-      font-size: 0.8em;
-      padding: 2px 6px;
-      border-radius: 3px;
-      background: var(--bg-tertiary);
+      font-size: 0.7em;
+      padding: 2px 5px;
+      border-radius: 2px;
+      background: var(--bg-secondary);
       color: var(--text-secondary);
     }
     
     .player-platform {
-      font-size: 0.75em;
+      font-size: 0.7em;
       color: var(--text-muted);
     }
     
     /* Detail Grid */
     .detail-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 8px;
-      margin-top: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 6px;
+      margin-top: 10px;
     }
     
     .detail-item {
-      background: var(--bg-secondary);
-      padding: 10px 12px;
-      border-radius: 6px;
+      background: var(--bg-tertiary);
+      padding: 7px 9px;
+      border-radius: 4px;
     }
     
     .detail-label {
       color: var(--text-muted);
-      font-size: 0.75em;
+      font-size: 0.65em;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
     }
     
     .detail-value {
       color: var(--text-primary);
-      font-size: 0.9em;
+      font-size: 0.8em;
       margin-top: 2px;
     }
     
-    /* Raw JSON */
+    /* Raw toggle in session */
     .raw-toggle {
-      margin-top: 16px;
+      margin-top: 12px;
     }
     
     .raw-toggle summary {
       cursor: pointer;
       color: var(--text-muted);
-      font-size: 0.85em;
+      font-size: 0.75em;
+    }
+    
+    .raw-toggle summary:hover {
+      color: var(--text-secondary);
     }
     
     .raw-json {
       background: var(--bg-primary);
-      padding: 12px;
-      border-radius: 6px;
-      margin-top: 8px;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 6px;
       overflow-x: auto;
     }
     
     .raw-json pre {
       margin: 0;
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 0.8em;
+      font-size: 0.7em;
       color: var(--text-secondary);
       white-space: pre-wrap;
       word-break: break-all;
     }
     
-    /* Sidebar */
-    .sidebar { display: flex; flex-direction: column; gap: 16px; }
-    
-    .stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    
-    .stat-card {
-      background: var(--bg-tertiary);
-      padding: 12px;
-      border-radius: 6px;
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 1.5em;
-      font-weight: 700;
-      color: var(--accent-blue);
-    }
-    
-    .stat-label {
-      font-size: 0.75em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    
-    /* Field Reference */
-    .field-table {
-      width: 100%;
+    .motd {
+      background: rgba(88, 166, 255, 0.1);
+      border-left: 2px solid var(--accent-blue);
+      padding: 6px 10px;
+      margin: 10px 0;
       font-size: 0.8em;
-      border-collapse: collapse;
-    }
-    
-    .field-table th,
-    .field-table td {
-      text-align: left;
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .field-table th {
-      background: var(--bg-tertiary);
       color: var(--text-secondary);
-      font-weight: 600;
-      font-size: 0.9em;
-    }
-    
-    .field-table code {
-      background: var(--bg-primary);
-      padding: 2px 5px;
-      border-radius: 3px;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--accent-cyan);
+      border-radius: 0 4px 4px 0;
     }
     
     .empty-state {
       text-align: center;
       padding: 40px 20px;
       color: var(--text-muted);
-    }
-    
-    .motd {
-      background: rgba(88, 166, 255, 0.1);
-      border-left: 3px solid var(--accent-blue);
-      padding: 8px 12px;
-      margin: 12px 0;
-      font-size: 0.9em;
-      color: var(--text-secondary);
-      border-radius: 0 6px 6px 0;
     }
   </style>
 </head>
@@ -447,88 +555,50 @@
     </div>
   </header>
   
-  <div class="layout">
-    <main>
-      <div class="panel">
-        <div class="panel-header">
-          <h2>Active Sessions</h2>
-          <span id="sessionCount" style="color: var(--text-secondary); font-size: 0.85em;">0 sessions</span>
+  <div class="main-container">
+    <!-- Left Panel - Sessions -->
+    <div class="sessions-panel">
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="value" id="totalSessions">-</span>
+          <span class="label">sessions</span>
         </div>
-        <div class="panel-content" id="sessionsContainer">
-          <div class="empty-state">Click "Refresh Sessions" to load data...</div>
+        <div class="stat-item">
+          <span class="value" id="totalPlayers">-</span>
+          <span class="label">players</span>
+        </div>
+        <div class="stat-item">
+          <span class="value" id="inGameCount">-</span>
+          <span class="label">in-game</span>
+        </div>
+        <div class="stat-item">
+          <span class="value" id="preGameCount">-</span>
+          <span class="label">in-lobby</span>
         </div>
       </div>
-    </main>
+      <div class="sessions-content" id="sessionsContainer">
+        <div class="empty-state">Click "Refresh" to load sessions...</div>
+      </div>
+    </div>
     
-    <aside class="sidebar">
-      <div class="panel">
-        <div class="panel-header">
-          <h2>Statistics</h2>
-        </div>
-        <div class="panel-content">
-          <div class="stat-grid" id="statsGrid">
-            <div class="stat-card">
-              <div class="stat-value" id="totalSessions">-</div>
-              <div class="stat-label">Sessions</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="totalPlayers">-</div>
-              <div class="stat-label">Players</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="inGameCount">-</div>
-              <div class="stat-label">In Game</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="preGameCount">-</div>
-              <div class="stat-label">In Lobby</div>
-            </div>
-          </div>
-        </div>
+    <!-- Right Panel - JSON Viewer -->
+    <div class="json-panel" id="jsonPanel">
+      <div class="json-header">
+        <h2>JSON Viewer</h2>
+        <button class="collapse-btn" onclick="toggleJsonPanel()" title="Collapse panel">»</button>
       </div>
-      
-      <div class="panel">
-        <div class="panel-header">
-          <h2>API Field Reference</h2>
-        </div>
-        <div class="panel-content" style="max-height: 300px;">
-          <table class="field-table">
-            <tr><th>Field</th><th>Meaning</th></tr>
-            <tr><td><code>si</code></td><td>ServerInfoMode (0-5)</td></tr>
-            <tr><td><code>t</code></td><td>NAT Type (0-7)</td></tr>
-            <tr><td><code>gt</code></td><td>Game Type (1=DM, 2=Strat)</td></tr>
-            <tr><td><code>gtd</code></td><td>Game Mode + Flags</td></tr>
-            <tr><td><code>gtm</code></td><td>Game Time (255=max)</td></tr>
-            <tr><td><code>k</code></td><td>Has Password</td></tr>
-            <tr><td><code>l</code></td><td>Is Locked</td></tr>
-            <tr><td><code>pl[].k</code></td><td>Player Kills</td></tr>
-            <tr><td><code>pl[].d</code></td><td>Player Deaths</td></tr>
-            <tr><td><code>pl[].s</code></td><td>Player Score</td></tr>
-          </table>
-        </div>
+      <div class="json-tabs">
+        <button class="json-tab active" data-view="parsed" onclick="setJsonView('parsed')">Parsed</button>
+        <button class="json-tab" data-view="raw" onclick="setJsonView('raw')">Raw</button>
+        <button class="json-tab" data-view="both" onclick="setJsonView('both')">Both</button>
       </div>
-      
-      <div class="panel">
-        <div class="panel-header">
-          <h2>Raw API (1 session)</h2>
+      <div class="json-content" id="jsonContent">
+        <div class="json-view" id="parsedView">
+          <div class="json-view-label">Parsed Output</div>
+          <pre>No data loaded</pre>
         </div>
-        <div class="panel-content" style="max-height: 200px;">
-          <div class="raw-json" id="rawApiPreview">
-            <pre>No data loaded</pre>
-          </div>
-        </div>
-      </div>
-    </aside>
-  </div>
-  
-  <div class="json-viewers">
-    <div class="panel" style="margin-top: 20px;">
-      <div class="panel-header">
-        <h2>Parsed API Output (Human-Readable)</h2>
-        <span style="color: var(--text-secondary); font-size: 0.85em;">Compare with reference API</span>
-      </div>
-      <div class="panel-content" style="max-height: 500px;">
-        <div class="raw-json" id="parsedJsonViewer">
+        <div class="json-view" id="rawView" style="display: none;">
+          <div class="json-view-label">Raw API Response</div>
           <pre>No data loaded</pre>
         </div>
       </div>
@@ -538,12 +608,50 @@
   <script src="bz2api.js"></script>
   <script>
     let autoRefreshInterval = null;
+    let currentJsonView = 'parsed';
     
     function setStatus(message, type) {
       const status = document.getElementById('status');
       status.textContent = message;
       status.className = 'status ' + type;
       status.style.display = 'inline-block';
+    }
+    
+    function toggleJsonPanel() {
+      const panel = document.getElementById('jsonPanel');
+      const btn = panel.querySelector('.collapse-btn');
+      const isCollapsed = panel.classList.toggle('collapsed');
+      
+      // » when expanded (click to collapse right), « when collapsed (click to expand left)
+      btn.textContent = isCollapsed ? '«' : '»';
+      btn.title = isCollapsed ? 'Expand panel' : 'Collapse panel';
+    }
+    
+    function setJsonView(view) {
+      currentJsonView = view;
+      
+      // Update tab states
+      document.querySelectorAll('.json-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.view === view);
+      });
+      
+      const parsedView = document.getElementById('parsedView');
+      const rawView = document.getElementById('rawView');
+      
+      if (view === 'parsed') {
+        parsedView.style.display = 'block';
+        rawView.style.display = 'none';
+        parsedView.style.flex = '1';
+      } else if (view === 'raw') {
+        parsedView.style.display = 'none';
+        rawView.style.display = 'block';
+        rawView.style.flex = '1';
+      } else { // both - stacked 50/50
+        parsedView.style.display = 'block';
+        rawView.style.display = 'block';
+        parsedView.style.flex = '1';
+        rawView.style.flex = '1';
+      }
     }
     
     function formatTime(minutes) {
@@ -567,18 +675,17 @@
     function renderPlayer(player, showStats = true) {
       const badges = [];
       if (player.isHost) badges.push('<span class="host-badge">HOST</span>');
-      if (player.isTeamLeader) badges.push('<span class="leader-badge">LEADER</span>');
+      if (player.isTeamLeader) badges.push('<span class="leader-badge">LEAD</span>');
       
-      const teamBadge = player.team ? 
-        `<span class="player-team">Team ${player.team}</span>` : '';
-      
-      const platform = player.platform ? 
-        `<span class="player-platform">${player.platform}</span>` : '';
+      const teamBadge = player.team ? `<span class="player-team">T${player.team}</span>` : '';
+      const platform = player.platform ? `<span class="player-platform">${player.platform}</span>` : '';
       
       const statsHtml = showStats ? `
-        <span class="player-stat kills" title="Kills">${player.kills ?? '-'}</span>
-        <span class="player-stat deaths" title="Deaths">${player.deaths ?? '-'}</span>
-        <span class="player-stat score" title="Score">${player.score ?? '-'}</span>
+        <div class="player-stats">
+          <span class="kills" title="Kills">${player.kills ?? '-'}</span>
+          <span class="deaths" title="Deaths">${player.deaths ?? '-'}</span>
+          <span class="score" title="Score">${player.score ?? '-'}</span>
+        </div>
       ` : '';
       
       return `
@@ -603,15 +710,14 @@
       
       if (session.isDedicatedServer) badges.push('<span class="badge dedicated">Dedicated</span>');
       if (session.isLocked) badges.push('<span class="badge locked">Locked</span>');
-      if (session.hasPassword) badges.push('<span class="badge password">Password</span>');
+      if (session.hasPassword) badges.push('<span class="badge password">Pass</span>');
       
-      const motdHtml = session.motd ? 
-        `<div class="motd">${escapeHtml(session.motd)}</div>` : '';
+      const motdHtml = session.motd ? `<div class="motd">${escapeHtml(session.motd)}</div>` : '';
       
       const hasStats = session.players.some(p => p.kills || p.deaths || p.score);
       const playersHtml = session.players.length > 0 ?
         session.players.map(p => renderPlayer(p, hasStats)).join('') :
-        '<div style="padding: 12px; color: var(--text-muted);">No players</div>';
+        '<div style="padding: 8px; color: var(--text-muted); font-size: 0.8em;">No players</div>';
       
       return `
         <div class="session-card" onclick="toggleSession(this)">
@@ -632,9 +738,7 @@
             ${motdHtml}
             
             <div class="section-title">Players ${hasStats ? '(K/D/S)' : ''}</div>
-            <div class="player-list">
-              ${playersHtml}
-            </div>
+            <div class="player-list">${playersHtml}</div>
             
             <div class="detail-grid">
               <div class="detail-item">
@@ -643,27 +747,23 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Game Mode</div>
-                <div class="detail-value">${session.gameModeName || 'Unknown'}${session.vehicleOnly ? ' (Vehicle)' : ''}</div>
+                <div class="detail-value">${session.gameModeName || 'Unknown'}${session.vehicleOnly ? ' (Veh)' : ''}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Respawn</div>
-                <div class="detail-value">${session.respawn}</div>
+                <div class="detail-value">${session.respawn || 'Unknown'}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">NAT Type</div>
                 <div class="detail-value">${session.nat.name}</div>
               </div>
               <div class="detail-item">
-                <div class="detail-label">Server TPS</div>
+                <div class="detail-label">TPS</div>
                 <div class="detail-value">${session.tps}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Max Ping</div>
                 <div class="detail-value">${session.maxPing}ms</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Worst Ping</div>
-                <div class="detail-value">${session.worstPingObserved || 0}ms</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Time Limit</div>
@@ -676,14 +776,6 @@
               <div class="detail-item">
                 <div class="detail-label">Mods</div>
                 <div class="detail-value">${session.isStock ? 'Stock' : session.mods.join(', ')}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Mod Hash</div>
-                <div class="detail-value">${session.modHash || 'N/A'}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Session ID</div>
-                <div class="detail-value" style="font-family: monospace; font-size: 0.85em;">${session.id}</div>
               </div>
             </div>
             
@@ -720,6 +812,23 @@
       document.getElementById('preGameCount').textContent = preGame;
     }
     
+    function updateJsonViews(result) {
+      // Parsed view (clean, no _raw)
+      const cleanedSessions = result.sessions.map(session => {
+        const { _raw, ...cleanSession } = session;
+        return cleanSession;
+      });
+      
+      document.querySelector('#parsedView pre').textContent = JSON.stringify({
+        timestamp: result.timestamp,
+        sessionCount: result.sessions.length,
+        sessions: cleanedSessions
+      }, null, 2);
+      
+      // Raw view
+      document.querySelector('#rawView pre').textContent = JSON.stringify(result.rawResponse, null, 2);
+    }
+    
     async function fetchData() {
       const btn = document.getElementById('fetchBtn');
       btn.disabled = true;
@@ -736,29 +845,13 @@
           container.innerHTML = result.sessions.map(renderSession).join('');
         }
         
-        document.getElementById('sessionCount').textContent = `${result.sessions.length} session(s)`;
-        
         // Update stats
         updateStats(result.sessions);
         
-        // Update raw preview (first session only)
-        const rawPreview = result.rawResponse.GET?.slice(0, 1) || [];
-        document.getElementById('rawApiPreview').innerHTML = 
-          '<pre>' + escapeHtml(JSON.stringify(rawPreview, null, 2)) + '</pre>';
+        // Update JSON views
+        updateJsonViews(result);
         
-        // Update parsed JSON viewer (exclude _raw to keep it clean)
-        const cleanedSessions = result.sessions.map(session => {
-          const { _raw, ...cleanSession } = session;
-          return cleanSession;
-        });
-        document.getElementById('parsedJsonViewer').innerHTML = 
-          '<pre>' + escapeHtml(JSON.stringify({
-            timestamp: result.timestamp,
-            sessionCount: result.sessions.length,
-            sessions: cleanedSessions
-          }, null, 2)) + '</pre>';
-        
-        setStatus(`Updated ${new Date().toLocaleTimeString()}`, 'success');
+        setStatus(`${new Date().toLocaleTimeString()}`, 'success');
         
         console.log('Parsed sessions:', result.sessions);
       } catch (error) {
