@@ -483,14 +483,6 @@ const BZ2API = (function() {
     const natInfo = parseNATType(raw.t);
     const timeLimitInfo = parseTimeLimit(raw.gtm);
     const mods = parseModIds(raw.mm);
-    
-    // Check for dedicated server (first player is the server bot)
-    const isDedicatedServer = players.length > 0 && 
-      players[0].steamId === '76561199232890248';
-    
-    // Calculate actual player count (excluding server bot if dedicated)
-    const playerCount = isDedicatedServer ? players.length - 1 : players.length;
-    const maxPlayerCount = isDedicatedServer ? (raw.pm - 1) : raw.pm;
 
     // Decode GUID and convert to hex string (BigInt can't be JSON serialized)
     const guidBigInt = decodeRakNetGuid(raw.g);
@@ -511,9 +503,8 @@ const BZ2API = (function() {
       
       // Players
       players,
-      playerCount,
-      maxPlayers: maxPlayerCount,
-      isDedicatedServer,
+      playerCount: players.length,
+      maxPlayers: raw.pm,
       
       // Mods
       mods,
