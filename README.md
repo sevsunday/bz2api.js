@@ -60,7 +60,10 @@ result.sessions.forEach(session => {
 
 **Download:** Grab [bz2api.js](https://github.com/sevsunday/bz2api.js/blob/main/bz2api.js) and include it in your project.
 
-**CDN:** TBD
+**CDN (jsDelivr):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/sevsunday/bz2api.js@1.0.0/bz2api.min.js"></script>
+```
 
 ## Documentation
 
