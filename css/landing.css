@@ -93,6 +93,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
   min-height: 100vh;
+  padding-top: 60px; /* Account for fixed navbar */
 }
 
 /* ============ Typography ============ */
@@ -488,7 +489,14 @@ code:not(pre code) {
   background: var(--bg-secondary);
 }
 
+/* ============ Hero Logo ============ */
+.hero-logo {
+  height: 56px;
+}
+
 /* ============ Responsive Adjustments ============ */
+
+/* Tablet and below */
 @media (max-width: 991px) {
   .hero-section {
     min-height: auto;
@@ -499,16 +507,51 @@ code:not(pre code) {
     font-size: 2rem;
   }
   
+  .hero-logo {
+    height: 40px;
+  }
+  
   .docs-sidebar {
     position: static;
     max-height: none;
     margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .section-title {
+    font-size: 1.75rem;
   }
 }
 
+/* Mobile */
 @media (max-width: 767px) {
+  .hero-section {
+    padding: 3rem 0;
+  }
+  
+  .hero-title {
+    font-size: 1.75rem;
+  }
+  
+  .hero-logo {
+    height: 32px;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+  
   .section-padding {
     padding: 3rem 0;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+  
+  .section-subtitle {
+    font-size: 0.95rem;
   }
   
   .glass-card {
@@ -517,6 +560,55 @@ code:not(pre code) {
   
   .feature-card {
     padding: 1.5rem;
+  }
+  
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+  
+  /* Code blocks scroll on mobile */
+  .code-block {
+    font-size: 0.8rem;
+  }
+  
+  .code-block pre {
+    overflow-x: auto;
+  }
+  
+  /* Navbar adjustments */
+  .navbar-custom .navbar-brand {
+    font-size: 1rem;
+  }
+  
+  /* Footer */
+  .footer-custom {
+    padding: 2rem 0;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 575px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+  
+  .hero-logo {
+    height: 28px;
+  }
+  
+  .btn-primary-custom,
+  .btn-outline-custom,
+  .btn-ghost {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .code-block {
+    font-size: 0.75rem;
+    padding: 1rem;
+    border-radius: 8px;
   }
 }
 

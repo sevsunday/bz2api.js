@@ -697,6 +697,147 @@
       user-select: none;
       cursor: col-resize;
     }
+    
+    /* ============ Mobile Responsive ============ */
+    @media (max-width: 991px) {
+      /* Stack layout vertically on tablets */
+      .main-container {
+        flex-direction: column;
+      }
+      
+      .sessions-panel {
+        min-width: unset;
+        flex: 1;
+        max-height: 50vh;
+      }
+      
+      .json-panel {
+        min-width: unset;
+        flex: 1;
+        max-height: 50vh;
+      }
+      
+      .json-panel.collapsed {
+        min-width: unset !important;
+        width: unset !important;
+        height: 40px !important;
+        max-height: 40px;
+      }
+      
+      .json-panel.collapsed .json-header {
+        flex-direction: row;
+        padding: 8px 16px;
+        height: auto;
+      }
+      
+      .json-panel.collapsed .json-header h2 {
+        writing-mode: horizontal-tb;
+        text-orientation: initial;
+      }
+      
+      /* Splitter horizontal on mobile */
+      .splitter-v {
+        width: 100%;
+        height: 6px;
+        cursor: row-resize;
+      }
+      
+      .splitter-v::after {
+        width: 30px;
+        height: 2px;
+      }
+      
+      body.dragging {
+        cursor: row-resize;
+      }
+    }
+    
+    @media (max-width: 767px) {
+      /* Hide JSON panel by default on mobile */
+      .header-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 12px;
+      }
+      
+      .header-bar h1 {
+        font-size: 1em;
+        order: 1;
+        flex: 1;
+      }
+      
+      .header-controls {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      
+      .status {
+        order: 2;
+      }
+      
+      .stats-bar {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 8px 12px;
+      }
+      
+      .stat-item {
+        font-size: 0.75em;
+      }
+      
+      .sessions-panel {
+        max-height: 60vh;
+      }
+      
+      .json-panel {
+        max-height: 40vh;
+      }
+      
+      .sessions-content {
+        padding: 8px;
+      }
+      
+      .session-card {
+        padding: 10px 12px;
+      }
+      
+      .session-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      
+      .session-meta {
+        flex-wrap: wrap;
+      }
+    }
+    
+    @media (max-width: 575px) {
+      .header-bar h1 {
+        font-size: 0.9em;
+      }
+      
+      button {
+        padding: 5px 10px;
+        font-size: 0.8em;
+      }
+      
+      .toggle-label {
+        font-size: 0.75em;
+      }
+      
+      .session-name {
+        font-size: 0.95em;
+      }
+      
+      .badge {
+        padding: 2px 5px;
+        font-size: 0.65em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -793,13 +934,17 @@
     }
     
     // ============ Splitter Logic ============
+    function isMobileLayout() {
+      return window.innerWidth <= 991;
+    }
+    
     function initSplitters() {
       const splitterV = document.getElementById('splitterV');
       const sessionsPanel = document.querySelector('.sessions-panel');
       const jsonPanel = document.getElementById('jsonPanel');
       const mainContainer = document.querySelector('.main-container');
       
-      // Vertical splitter (adjusts panel widths)
+      // Splitter (adjusts panel widths on desktop, heights on mobile)
       let isDraggingV = false;
       
       splitterV.addEventListener('mousedown', (e) => {
@@ -810,25 +955,70 @@
         e.preventDefault();
       });
       
+      // Touch support for mobile
+      splitterV.addEventListener('touchstart', (e) => {
+        if (jsonPanel.classList.contains('collapsed')) return;
+        isDraggingV = true;
+        splitterV.classList.add('active');
+        e.preventDefault();
+      });
+      
       document.addEventListener('mousemove', (e) => {
-        if (isDraggingV) {
-          const containerRect = mainContainer.getBoundingClientRect();
-          const splitterWidth = 6;
+        handleDrag(e.clientX, e.clientY);
+      });
+      
+      document.addEventListener('touchmove', (e) => {
+        if (isDraggingV && e.touches.length > 0) {
+          handleDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      });
+      
+      function handleDrag(clientX, clientY) {
+        if (!isDraggingV) return;
+        
+        const containerRect = mainContainer.getBoundingClientRect();
+        const splitterSize = 6;
+        
+        if (isMobileLayout()) {
+          // Mobile: vertical stacking, adjust heights
+          const minSessionsHeight = 150;
+          const minJsonHeight = 100;
+          
+          let newSessionsHeight = clientY - containerRect.top;
+          let newJsonHeight = containerRect.height - newSessionsHeight - splitterSize;
+          
+          // Enforce minimums
+          if (newSessionsHeight < minSessionsHeight) {
+            newSessionsHeight = minSessionsHeight;
+            newJsonHeight = containerRect.height - newSessionsHeight - splitterSize;
+          }
+          if (newJsonHeight < minJsonHeight) {
+            newJsonHeight = minJsonHeight;
+            newSessionsHeight = containerRect.height - newJsonHeight - splitterSize;
+          }
+          
+          // Apply heights
+          sessionsPanel.style.flex = 'none';
+          sessionsPanel.style.maxHeight = 'none';
+          sessionsPanel.style.height = newSessionsHeight + 'px';
+          jsonPanel.style.maxHeight = 'none';
+          jsonPanel.style.height = newJsonHeight + 'px';
+        } else {
+          // Desktop: horizontal side-by-side, adjust widths
           const minSessionsWidth = 300;
           const minJsonWidth = 200;
           
-          // Calculate new widths
-          let newSessionsWidth = e.clientX - containerRect.left;
-          let newJsonWidth = containerRect.width - newSessionsWidth - splitterWidth;
+          let newSessionsWidth = clientX - containerRect.left;
+          let newJsonWidth = containerRect.width - newSessionsWidth - splitterSize;
           
           // Enforce minimums
           if (newSessionsWidth < minSessionsWidth) {
             newSessionsWidth = minSessionsWidth;
-            newJsonWidth = containerRect.width - newSessionsWidth - splitterWidth;
+            newJsonWidth = containerRect.width - newSessionsWidth - splitterSize;
           }
           if (newJsonWidth < minJsonWidth) {
             newJsonWidth = minJsonWidth;
-            newSessionsWidth = containerRect.width - newJsonWidth - splitterWidth;
+            newSessionsWidth = containerRect.width - newJsonWidth - splitterSize;
           }
           
           // Apply widths
@@ -839,13 +1029,20 @@
           // Store percentage for collapse/expand
           jsonPanelWidth = (newJsonWidth / containerRect.width) * 100;
         }
-      });
+      }
       
       document.addEventListener('mouseup', () => {
         if (isDraggingV) {
           isDraggingV = false;
           splitterV.classList.remove('active');
           document.body.classList.remove('dragging');
+        }
+      });
+      
+      document.addEventListener('touchend', () => {
+        if (isDraggingV) {
+          isDraggingV = false;
+          splitterV.classList.remove('active');
         }
       });
     }
@@ -884,13 +1081,36 @@
       return document.getElementById('enrichVsrMaps').checked;
     }
     
+    // Handle layout changes on resize
+    let lastMobileState = null;
+    function handleResize() {
+      const isMobile = isMobileLayout();
+      if (lastMobileState !== null && lastMobileState !== isMobile) {
+        // Reset panel dimensions when crossing breakpoint
+        const sessionsPanel = document.querySelector('.sessions-panel');
+        const jsonPanel = document.getElementById('jsonPanel');
+        sessionsPanel.style.width = '';
+        sessionsPanel.style.height = '';
+        sessionsPanel.style.maxHeight = '';
+        sessionsPanel.style.flex = '';
+        jsonPanel.style.width = isMobile ? '' : '50%';
+        jsonPanel.style.height = '';
+        jsonPanel.style.maxHeight = '';
+      }
+      lastMobileState = isMobile;
+    }
+    
     // Initialize on load
     document.addEventListener('DOMContentLoaded', async () => {
+      lastMobileState = isMobileLayout();
       initSplitters();
       loadMapEnrichmentPref();
       loadVsrEnrichmentPref();
       await initJsonExplorer();
       fetchData();
+      
+      // Handle resize events
+      window.addEventListener('resize', handleResize);
     });
     
     function setStatus(message, type) {
