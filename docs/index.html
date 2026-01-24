@@ -373,30 +373,9 @@ BZ2API.<span class="code-function">fetchSessions</span>({
           
           <!-- Server-Side Usage -->
           <h2 id="server-side">Server-Side Usage</h2>
-          <p>The library works in Node.js 18+ (native fetch) or with a fetch polyfill:</p>
+          <p>The library works in Node.js 18+ (native fetch) or with a fetch polyfill.</p>
           
-          <h5>Express.js Example</h5>
-          <div class="code-block mb-4">
-<pre><code><span class="code-keyword">const</span> express = <span class="code-function">require</span>(<span class="code-string">'express'</span>);
-<span class="code-keyword">const</span> BZ2API = <span class="code-function">require</span>(<span class="code-string">'./bz2api.js'</span>);
-
-<span class="code-keyword">const</span> app = <span class="code-function">express</span>();
-
-app.<span class="code-function">get</span>(<span class="code-string">'/api/sessions'</span>, <span class="code-keyword">async</span> (req, res) => {
-  <span class="code-keyword">try</span> {
-    <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>({
-      enrichMaps: <span class="code-keyword">true</span>
-    });
-    res.<span class="code-function">json</span>(result);
-  } <span class="code-keyword">catch</span> (err) {
-    res.<span class="code-function">status</span>(<span class="code-number">500</span>).<span class="code-function">json</span>({ error: err.message });
-  }
-});
-
-app.<span class="code-function">listen</span>(<span class="code-number">3000</span>);</code></pre>
-          </div>
-          
-          <h5>Plain Node.js</h5>
+          <h5>Basic Example</h5>
           <div class="code-block mb-4">
 <pre><code><span class="code-keyword">const</span> BZ2API = <span class="code-function">require</span>(<span class="code-string">'./bz2api.js'</span>);
 
@@ -409,6 +388,144 @@ app.<span class="code-function">listen</span>(<span class="code-number">3000</sp
     <span class="code-function">console.log</span>(<span class="code-string">`- </span>${s.name}<span class="code-string">: </span>${s.playerCount}<span class="code-string"> players`</span>);
   });
 })();</code></pre>
+          </div>
+          
+          <h4 class="mt-5">Steam/GOG Data Enrichment</h4>
+          <p>The library generates <strong>profile URLs</strong> for Steam and GOG players, but does not fetch avatars, nicknames, or other profile data. This is intentional:</p>
+          
+          <ul>
+            <li><strong>Steam Web API</strong> requires an API key that must remain secret</li>
+            <li><strong>GOG Galaxy API</strong> has similar restrictions</li>
+            <li>Exposing API keys in client-side code is a security risk</li>
+          </ul>
+          
+          <p>The recommended architecture is to run <code>bz2api.js</code> on your server, enrich with Steam/GOG APIs, and expose your own endpoint:</p>
+          
+          <div class="code-block mb-4">
+<pre><code><span class="code-comment">[Rebellion API] → [Your Server] → [Your Client]</span>
+<span class="code-comment">                       ↓</span>
+<span class="code-comment">                  [Steam API]</span></code></pre>
+          </div>
+          
+          <h5>Express.js with Steam Enrichment</h5>
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> express = <span class="code-function">require</span>(<span class="code-string">'express'</span>);
+<span class="code-keyword">const</span> BZ2API = <span class="code-function">require</span>(<span class="code-string">'./bz2api.js'</span>);
+
+<span class="code-keyword">const</span> STEAM_API_KEY = process.env.STEAM_API_KEY;
+
+<span class="code-keyword">async function</span> <span class="code-function">getSteamPlayerSummaries</span>(steamIds) {
+  <span class="code-keyword">if</span> (steamIds.length === <span class="code-number">0</span>) <span class="code-keyword">return</span> {};
+  <span class="code-keyword">const</span> url = <span class="code-string">`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=</span>${STEAM_API_KEY}<span class="code-string">&steamids=</span>${steamIds.<span class="code-function">join</span>(<span class="code-string">','</span>)}<span class="code-string">`</span>;
+  <span class="code-keyword">const</span> response = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(url);
+  <span class="code-keyword">const</span> data = <span class="code-keyword">await</span> response.<span class="code-function">json</span>();
+  
+  <span class="code-keyword">const</span> players = {};
+  <span class="code-keyword">for</span> (<span class="code-keyword">const</span> player <span class="code-keyword">of</span> data.response.players || []) {
+    players[player.steamid] = {
+      nickname: player.personaname,
+      avatar: player.avatarfull
+    };
+  }
+  <span class="code-keyword">return</span> players;
+}
+
+<span class="code-keyword">const</span> app = <span class="code-function">express</span>();
+
+app.<span class="code-function">get</span>(<span class="code-string">'/api/sessions'</span>, <span class="code-keyword">async</span> (req, res) => {
+  <span class="code-keyword">try</span> {
+    <span class="code-comment">// Fetch and parse sessions</span>
+    <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>({ enrichMaps: <span class="code-keyword">true</span> });
+    
+    <span class="code-comment">// Collect all unique Steam IDs</span>
+    <span class="code-keyword">const</span> steamIds = <span class="code-keyword">new</span> <span class="code-function">Set</span>();
+    <span class="code-keyword">for</span> (<span class="code-keyword">const</span> session <span class="code-keyword">of</span> result.sessions) {
+      <span class="code-keyword">for</span> (<span class="code-keyword">const</span> player <span class="code-keyword">of</span> session.players) {
+        <span class="code-keyword">if</span> (player.steamId) steamIds.<span class="code-function">add</span>(player.steamId);
+      }
+    }
+    
+    <span class="code-comment">// Fetch Steam data in bulk and enrich players</span>
+    <span class="code-keyword">const</span> steamData = <span class="code-keyword">await</span> <span class="code-function">getSteamPlayerSummaries</span>([...steamIds]);
+    <span class="code-keyword">for</span> (<span class="code-keyword">const</span> session <span class="code-keyword">of</span> result.sessions) {
+      <span class="code-keyword">for</span> (<span class="code-keyword">const</span> player <span class="code-keyword">of</span> session.players) {
+        <span class="code-keyword">if</span> (player.steamId && steamData[player.steamId]) {
+          Object.<span class="code-function">assign</span>(player, steamData[player.steamId]);
+        }
+      }
+    }
+    
+    res.<span class="code-function">json</span>(result);
+  } <span class="code-keyword">catch</span> (err) {
+    res.<span class="code-function">status</span>(<span class="code-number">500</span>).<span class="code-function">json</span>({ error: err.message });
+  }
+});
+
+app.<span class="code-function">listen</span>(<span class="code-number">3000</span>, () => <span class="code-function">console.log</span>(<span class="code-string">'Server running'</span>));</code></pre>
+          </div>
+          
+          <h5>Plain Node.js with Steam Enrichment</h5>
+          <div class="code-block mb-4">
+<pre><code><span class="code-keyword">const</span> http = <span class="code-function">require</span>(<span class="code-string">'http'</span>);
+<span class="code-keyword">const</span> BZ2API = <span class="code-function">require</span>(<span class="code-string">'./bz2api.js'</span>);
+
+<span class="code-keyword">const</span> STEAM_API_KEY = process.env.STEAM_API_KEY;
+
+<span class="code-keyword">async function</span> <span class="code-function">getSteamPlayerSummaries</span>(steamIds) {
+  <span class="code-keyword">if</span> (steamIds.length === <span class="code-number">0</span>) <span class="code-keyword">return</span> {};
+  <span class="code-keyword">const</span> url = <span class="code-string">`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=</span>${STEAM_API_KEY}<span class="code-string">&steamids=</span>${steamIds.<span class="code-function">join</span>(<span class="code-string">','</span>)}<span class="code-string">`</span>;
+  <span class="code-keyword">const</span> response = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(url);
+  <span class="code-keyword">const</span> data = <span class="code-keyword">await</span> response.<span class="code-function">json</span>();
+  
+  <span class="code-keyword">const</span> players = {};
+  <span class="code-keyword">for</span> (<span class="code-keyword">const</span> player <span class="code-keyword">of</span> data.response.players || []) {
+    players[player.steamid] = {
+      nickname: player.personaname,
+      avatar: player.avatarfull
+    };
+  }
+  <span class="code-keyword">return</span> players;
+}
+
+<span class="code-keyword">const</span> server = http.<span class="code-function">createServer</span>(<span class="code-keyword">async</span> (req, res) => {
+  <span class="code-keyword">if</span> (req.url === <span class="code-string">'/api/sessions'</span> && req.method === <span class="code-string">'GET'</span>) {
+    <span class="code-keyword">try</span> {
+      <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> BZ2API.<span class="code-function">fetchSessions</span>({ enrichMaps: <span class="code-keyword">true</span> });
+      
+      <span class="code-comment">// Collect and fetch Steam data</span>
+      <span class="code-keyword">const</span> steamIds = <span class="code-keyword">new</span> <span class="code-function">Set</span>();
+      <span class="code-keyword">for</span> (<span class="code-keyword">const</span> session <span class="code-keyword">of</span> result.sessions) {
+        <span class="code-keyword">for</span> (<span class="code-keyword">const</span> player <span class="code-keyword">of</span> session.players) {
+          <span class="code-keyword">if</span> (player.steamId) steamIds.<span class="code-function">add</span>(player.steamId);
+        }
+      }
+      
+      <span class="code-keyword">const</span> steamData = <span class="code-keyword">await</span> <span class="code-function">getSteamPlayerSummaries</span>([...steamIds]);
+      <span class="code-keyword">for</span> (<span class="code-keyword">const</span> session <span class="code-keyword">of</span> result.sessions) {
+        <span class="code-keyword">for</span> (<span class="code-keyword">const</span> player <span class="code-keyword">of</span> session.players) {
+          <span class="code-keyword">if</span> (player.steamId && steamData[player.steamId]) {
+            Object.<span class="code-function">assign</span>(player, steamData[player.steamId]);
+          }
+        }
+      }
+      
+      res.<span class="code-function">writeHead</span>(<span class="code-number">200</span>, { <span class="code-string">'Content-Type'</span>: <span class="code-string">'application/json'</span> });
+      res.<span class="code-function">end</span>(JSON.<span class="code-function">stringify</span>(result));
+    } <span class="code-keyword">catch</span> (err) {
+      res.<span class="code-function">writeHead</span>(<span class="code-number">500</span>, { <span class="code-string">'Content-Type'</span>: <span class="code-string">'application/json'</span> });
+      res.<span class="code-function">end</span>(JSON.<span class="code-function">stringify</span>({ error: err.message }));
+    }
+  } <span class="code-keyword">else</span> {
+    res.<span class="code-function">writeHead</span>(<span class="code-number">404</span>);
+    res.<span class="code-function">end</span>(<span class="code-string">'Not Found'</span>);
+  }
+});
+
+server.<span class="code-function">listen</span>(<span class="code-number">3000</span>, () => <span class="code-function">console.log</span>(<span class="code-string">'Server running'</span>));</code></pre>
+          </div>
+          
+          <div class="alert alert-info">
+            <strong>Why Node.js?</strong> The <code>bz2api.js</code> library handles complex parsing including Windows-1252 character decoding, RakNet GUID unpacking, game mode bit fields, and team slot mapping. Using Node.js lets you leverage all this parsing directly. Other languages would require reimplementing this logic.
           </div>
           
           <!-- Constants -->
