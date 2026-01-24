@@ -1,4 +1,4 @@
-# BZ2API.js
+# bz2api.js
 
 A zero-dependency JavaScript library for fetching and parsing multiplayer session data from the Battlezone 2: Combat Commander lobby server.
 
