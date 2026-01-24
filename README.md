@@ -4,6 +4,7 @@ A lightweight, zero-dependency JavaScript library for querying Battlezone 2: Com
 
 ## Links
 
+- **Homepage:** [sevsunday.github.io/bz2api.js](https://sevsunday.github.io/bz2api.js/)
 - **Live Demo:** [sevsunday.github.io/bz2api.js/demo/](https://sevsunday.github.io/bz2api.js/demo/)
 - **Documentation:** [sevsunday.github.io/bz2api.js/docs/](https://sevsunday.github.io/bz2api.js/docs/)
 - **Download:** [bz2api.js](https://github.com/sevsunday/bz2api.js/blob/main/bz2api.js)
