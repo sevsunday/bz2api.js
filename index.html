@@ -9,6 +9,9 @@
   <!-- Bootstrap 5.3 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,13 +44,13 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="https://github.com/phu54321/bz2api.js" target="_blank">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
+              <i class="bi bi-github fs-5"></i>
             </a>
           </li>
           <li class="nav-item ms-2">
-            <button class="theme-toggle" type="button" aria-label="Toggle theme">☀️</button>
+            <button class="theme-toggle" type="button" aria-label="Toggle theme">
+              <i class="bi bi-sun-fill"></i>
+            </button>
           </li>
           <li class="nav-item ms-2">
             <a class="btn btn-primary-custom btn-sm" href="bz2api.js" download>Download</a>
@@ -71,9 +74,7 @@
           </p>
           <div class="d-flex gap-3 flex-wrap animate-fade-in-up animate-delay-2">
             <a href="bz2api.js" download class="btn btn-primary-custom">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="me-2">
-                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-              </svg>
+              <i class="bi bi-download me-2"></i>
               Download
             </a>
             <a href="./demo/" class="btn btn-outline-custom">
@@ -111,7 +112,7 @@ result.sessions.<span class="code-function">forEach</span>(session => {
       <div class="row g-4">
         <div class="col-md-6 col-lg-4">
           <div class="glass-card feature-card">
-            <div class="feature-icon">🌐</div>
+            <div class="feature-icon"><i class="bi bi-globe"></i></div>
             <h3 class="feature-title">CORS Handling</h3>
             <p class="feature-desc">Automatic proxy fallback for browser-based apps. Works out of the box without server configuration.</p>
           </div>
@@ -119,7 +120,7 @@ result.sessions.<span class="code-function">forEach</span>(session => {
         
         <div class="col-md-6 col-lg-4">
           <div class="glass-card feature-card">
-            <div class="feature-icon">📊</div>
+            <div class="feature-icon"><i class="bi bi-bar-chart-fill"></i></div>
             <h3 class="feature-title">Full Data Parsing</h3>
             <p class="feature-desc">Complete parsing of session data including players, stats, game modes, NAT types, and more.</p>
           </div>
@@ -127,7 +128,7 @@ result.sessions.<span class="code-function">forEach</span>(session => {
         
         <div class="col-md-6 col-lg-4">
           <div class="glass-card feature-card">
-            <div class="feature-icon">🗺️</div>
+            <div class="feature-icon"><i class="bi bi-map"></i></div>
             <h3 class="feature-title">Map Enrichment</h3>
             <p class="feature-desc">Optional map data enrichment with images, descriptions, and team names from external APIs.</p>
           </div>
@@ -135,7 +136,7 @@ result.sessions.<span class="code-function">forEach</span>(session => {
         
         <div class="col-md-6 col-lg-4">
           <div class="glass-card feature-card">
-            <div class="feature-icon">⚡</div>
+            <div class="feature-icon"><i class="bi bi-lightning-charge-fill"></i></div>
             <h3 class="feature-title">VSR Support</h3>
             <p class="feature-desc">Built-in support for VSR (Vet Strategy Recycler) mod with map metadata like pools and loose scrap.</p>
           </div>
@@ -143,7 +144,7 @@ result.sessions.<span class="code-function">forEach</span>(session => {
         
         <div class="col-md-6 col-lg-4">
           <div class="glass-card feature-card">
-            <div class="feature-icon">🔗</div>
+            <div class="feature-icon"><i class="bi bi-steam"></i></div>
             <h3 class="feature-title">Steam Integration</h3>
             <p class="feature-desc">Player profile URLs, Steam Workshop mod links, and direct game join URLs.</p>
           </div>
@@ -151,7 +152,7 @@ result.sessions.<span class="code-function">forEach</span>(session => {
         
         <div class="col-md-6 col-lg-4">
           <div class="glass-card feature-card">
-            <div class="feature-icon">🖥️</div>
+            <div class="feature-icon"><i class="bi bi-pc-display"></i></div>
             <h3 class="feature-title">Universal</h3>
             <p class="feature-desc">Works in browsers (vanilla JS, React, Vue) and server-side (Node.js) environments.</p>
           </div>

@@ -45,7 +45,9 @@
     toggleBtns.forEach(btn => {
       // Sun icon for dark mode (click to switch to light)
       // Moon icon for light mode (click to switch to dark)
-      btn.innerHTML = theme === DARK ? '☀️' : '🌙';
+      btn.innerHTML = theme === DARK 
+        ? '<i class="bi bi-sun-fill"></i>' 
+        : '<i class="bi bi-moon-fill"></i>';
       btn.setAttribute('aria-label', theme === DARK ? 'Switch to light mode' : 'Switch to dark mode');
       btn.setAttribute('title', theme === DARK ? 'Switch to light mode' : 'Switch to dark mode');
     });
