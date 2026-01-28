@@ -839,9 +839,135 @@
         font-size: 0.65em;
       }
     }
+    
+    /* ============ Loading Overlay ============ */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .loading-container {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 32px;
+      min-width: 320px;
+      max-width: 90vw;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .loading-title {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .loading-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .loading-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85em;
+      color: var(--text-secondary);
+      padding: 6px 0;
+    }
+    
+    .loading-step .step-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .loading-step .step-icon.pending {
+      color: var(--accent-blue);
+    }
+    
+    .loading-step .step-icon.success {
+      color: var(--accent-green);
+    }
+    
+    .loading-step .step-icon.failed {
+      color: var(--accent-red);
+    }
+    
+    .loading-step.pending .step-message {
+      color: var(--text-primary);
+    }
+    
+    .loading-step.success .step-message {
+      color: var(--accent-green);
+    }
+    
+    .loading-step.failed .step-message {
+      color: var(--text-muted);
+    }
+    
+    /* Spinner animation */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-error-btn {
+      margin-top: 16px;
+      width: 100%;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    
+    .loading-error-btn:hover {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loading-container">
+      <div class="loading-title">Loading Session Data</div>
+      <div class="loading-steps" id="loadingSteps">
+        <!-- Steps will be added dynamically -->
+      </div>
+    </div>
+  </div>
+
   <header class="header-bar">
     <div style="display: flex; align-items: center; gap: 16px;">
       <a href="../" style="color: var(--text-muted); text-decoration: none; font-size: 0.9em;">← Home</a>
@@ -1550,7 +1676,76 @@
       jsonExplorer.setData(parsedData, result.rawResponse);
     }
     
-    async function fetchData() {
+    // ============ Loading Overlay Functions ============
+    let isFirstLoad = true;
+    
+    function showLoadingOverlay() {
+      const overlay = document.getElementById('loadingOverlay');
+      const stepsContainer = document.getElementById('loadingSteps');
+      stepsContainer.innerHTML = ''; // Clear previous steps
+      overlay.classList.remove('hidden');
+    }
+    
+    function hideLoadingOverlay(delay = 300) {
+      const overlay = document.getElementById('loadingOverlay');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, delay);
+    }
+    
+    function getStepIcon(status) {
+      switch (status) {
+        case 'pending':
+          return '<div class="spinner"></div>';
+        case 'success':
+          return '✓';
+        case 'failed':
+          return '✕';
+        default:
+          return '•';
+      }
+    }
+    
+    function addOrUpdateLoadingStep(stepId, status, message) {
+      const stepsContainer = document.getElementById('loadingSteps');
+      let stepEl = stepsContainer.querySelector(`[data-step-id="${stepId}"]`);
+      
+      if (!stepEl) {
+        // Create new step element
+        stepEl = document.createElement('div');
+        stepEl.className = 'loading-step';
+        stepEl.setAttribute('data-step-id', stepId);
+        stepsContainer.appendChild(stepEl);
+      }
+      
+      // Update step content and status
+      stepEl.className = `loading-step ${status}`;
+      stepEl.innerHTML = `
+        <span class="step-icon ${status}">${getStepIcon(status)}</span>
+        <span class="step-message">${message}</span>
+      `;
+    }
+    
+    function showLoadingError(errorMessage) {
+      const stepsContainer = document.getElementById('loadingSteps');
+      
+      // Add dismiss button if not already present
+      if (!stepsContainer.querySelector('.loading-error-btn')) {
+        const btn = document.createElement('button');
+        btn.className = 'loading-error-btn';
+        btn.textContent = 'Dismiss';
+        btn.onclick = () => hideLoadingOverlay(0);
+        stepsContainer.appendChild(btn);
+      }
+    }
+    
+    function handleStatusUpdate(status) {
+      // Create a unique step ID based on the step type and proxy (if applicable)
+      const stepId = status.proxy ? `${status.step}-${status.proxy}` : status.step;
+      addOrUpdateLoadingStep(stepId, status.status, status.message);
+    }
+    
+    async function fetchData(showOverlay = true) {
       const btn = document.getElementById('fetchBtn');
       btn.disabled = true;
       const enrichMaps = getEnrichMapsOption();
@@ -1558,8 +1753,18 @@
       const isEnriching = enrichMaps || enrichVsrMaps;
       setStatus(isEnriching ? 'Fetching + enriching...' : 'Fetching...', 'loading');
       
+      // Show loading overlay for initial load and manual refresh (not auto-refresh)
+      const shouldShowOverlay = showOverlay && (isFirstLoad || !document.getElementById('autoRefresh').checked);
+      if (shouldShowOverlay) {
+        showLoadingOverlay();
+      }
+      
       try {
-        const result = await BZ2API.fetchSessions({ enrichMaps, enrichVsrMaps });
+        const result = await BZ2API.fetchSessions({ 
+          enrichMaps, 
+          enrichVsrMaps,
+          onStatus: shouldShowOverlay ? handleStatusUpdate : undefined
+        });
         
         // Store result for session selection feature
         lastFetchResult = result;
@@ -1605,10 +1810,22 @@
         
         setStatus(`${new Date().toLocaleTimeString()}`, 'success');
         
+        // Hide overlay after brief delay to show completion
+        if (shouldShowOverlay) {
+          hideLoadingOverlay(500);
+        }
+        
+        isFirstLoad = false;
         console.log('Parsed sessions:', result.sessions);
       } catch (error) {
         setStatus('Error: ' + error.message, 'error');
         console.error('Fetch error:', error);
+        
+        // Show error in overlay with dismiss button
+        if (shouldShowOverlay) {
+          addOrUpdateLoadingStep('error', 'failed', 'Error: ' + error.message);
+          showLoadingError(error.message);
+        }
       } finally {
         btn.disabled = false;
       }
@@ -1617,8 +1834,8 @@
     function toggleAutoRefresh() {
       const checkbox = document.getElementById('autoRefresh');
       if (checkbox.checked) {
-        fetchData();
-        autoRefreshInterval = setInterval(fetchData, 30000);
+        fetchData(); // First call shows overlay
+        autoRefreshInterval = setInterval(() => fetchData(false), 30000); // Subsequent calls don't show overlay
       } else {
         clearInterval(autoRefreshInterval);
         autoRefreshInterval = null;

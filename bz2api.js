@@ -18,6 +18,23 @@ const BZ2API = (function() {
     'https://api.allorigins.win/raw?url=',
   ];
 
+  // Cache for last successful fetch method (in-memory, per session)
+  // null = no cache, 'direct' = direct fetch worked, or proxy URL string
+  let lastSuccessfulMethod = null;
+
+  /**
+   * Get proxy order with cached successful proxy first
+   * @returns {string[]} Array of proxy URLs in optimized order
+   */
+  function getProxyOrder() {
+    if (lastSuccessfulMethod && lastSuccessfulMethod !== 'direct') {
+      const cached = lastSuccessfulMethod;
+      const others = CORS_PROXIES.filter(p => p !== cached);
+      return [cached, ...others];
+    }
+    return [...CORS_PROXIES];
+  }
+
   // VSR (Vet Strategy Recycler) mod ID - special balance mod
   const VSR_MOD_ID = '1325933293';
 
@@ -951,15 +968,19 @@ const BZ2API = (function() {
   /**
    * Attempt to fetch from the API, trying CORS proxies if direct fetch fails
    * @param {Object} options - Fetch options
+   * @param {string} options.proxyUrl - Optional specific proxy URL to use
+   * @param {string} options.apiUrl - API URL (defaults to lobby server)
+   * @param {boolean} options.bustCache - Add cache-busting param (default: true)
+   * @param {Function} options.onStatus - Optional callback for status updates
    * @returns {Promise<Object>} Raw API response
    */
   async function fetchRaw(options = {}) {
-    const { proxyUrl, apiUrl = DEFAULT_API_URL, bustCache = true } = options;
+    const { proxyUrl, apiUrl = DEFAULT_API_URL, bustCache = true, onStatus } = options;
     
     // Add cache-busting to the target URL
     const targetUrl = bustCache ? addCacheBuster(apiUrl) : apiUrl;
     
-    // If a specific proxy is provided, use it
+    // If a specific proxy is provided, use it (no caching)
     if (proxyUrl) {
       const url = proxyUrl + encodeURIComponent(targetUrl);
       const response = await fetch(url);
@@ -968,30 +989,41 @@ const BZ2API = (function() {
     }
     
     // Try direct fetch first
+    onStatus?.({ step: 'direct', status: 'pending', message: 'Connecting to lobby server...' });
     try {
       const response = await fetch(targetUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      lastSuccessfulMethod = 'direct';
+      onStatus?.({ step: 'direct', status: 'success', message: 'Connected directly' });
       return response.json();
     } catch (directError) {
       console.warn('Direct fetch failed, trying CORS proxies...', directError.message);
-      
-      // Try each proxy
-      for (const proxy of CORS_PROXIES) {
-        try {
-          const url = proxy + encodeURIComponent(targetUrl);
-          console.log('Trying proxy:', proxy);
-          const response = await fetch(url);
-          if (!response.ok) continue;
-          const data = await response.json();
-          console.log('Success with proxy:', proxy);
-          return data;
-        } catch (proxyError) {
-          console.warn('Proxy failed:', proxy, proxyError.message);
-        }
-      }
-      
-      throw new Error('All fetch attempts failed. CORS may be blocking requests.');
+      onStatus?.({ step: 'direct', status: 'failed', message: 'Direct connection blocked (CORS)' });
     }
+    
+    // Try proxies in optimized order (cached successful proxy first)
+    const proxyOrder = getProxyOrder();
+    for (const proxy of proxyOrder) {
+      const proxyName = new URL(proxy).hostname;
+      onStatus?.({ step: 'proxy', status: 'pending', proxy: proxyName, message: `Trying ${proxyName}...` });
+      try {
+        const url = proxy + encodeURIComponent(targetUrl);
+        console.log('Trying proxy:', proxy);
+        const response = await fetch(url);
+        if (!response.ok) continue;
+        const data = await response.json();
+        lastSuccessfulMethod = proxy;
+        console.log('Success with proxy:', proxy);
+        onStatus?.({ step: 'proxy', status: 'success', proxy: proxyName, message: `Connected via ${proxyName}` });
+        return data;
+      } catch (proxyError) {
+        console.warn('Proxy failed:', proxy, proxyError.message);
+        onStatus?.({ step: 'proxy', status: 'failed', proxy: proxyName, message: `${proxyName} failed` });
+      }
+    }
+    
+    onStatus?.({ step: 'error', status: 'failed', message: 'All connection attempts failed' });
+    throw new Error('All fetch attempts failed. CORS may be blocking requests.');
   }
 
   /**
@@ -1042,6 +1074,7 @@ const BZ2API = (function() {
    * @param {boolean} options.enrichVsrMaps - Enable VSR map metadata enrichment (default: false)
    * @param {Array} options.vsrMapData - Optional custom VSR map data array
    * @param {string} options.vsrMapDataMode - Required if vsrMapData provided: 'replace' or 'merge'
+   * @param {Function} options.onStatus - Optional callback for status updates
    * @returns {Promise<Object>} Object containing sessions array and metadata
    */
   async function fetchSessions(options = {}) {
@@ -1050,6 +1083,7 @@ const BZ2API = (function() {
       enrichVsrMaps = false,
       vsrMapData,
       vsrMapDataMode,
+      onStatus,
       ...fetchOptions 
     } = options;
     
@@ -1063,8 +1097,10 @@ const BZ2API = (function() {
       throw new Error('vsrMapDataMode must be "replace" or "merge".');
     }
     
-    const rawData = await fetchRaw(fetchOptions);
+    // Pass onStatus to fetchRaw for connection status updates
+    const rawData = await fetchRaw({ ...fetchOptions, onStatus });
     
+    onStatus?.({ step: 'parse', status: 'pending', message: 'Parsing session data...' });
     const sessions = (rawData.GET || []).map(parseSession);
     
     // Sort sessions by ID for consistent ordering across refreshes
@@ -1072,22 +1108,29 @@ const BZ2API = (function() {
     
     // Enrich sessions with map data if opt-in enabled
     if (enrichMaps) {
+      onStatus?.({ step: 'enrich-maps', status: 'pending', message: 'Loading map data...' });
       try {
         await enrichSessionsWithMapData(sessions);
+        onStatus?.({ step: 'enrich-maps', status: 'success', message: 'Map data loaded' });
       } catch (e) {
         console.warn('Map enrichment failed:', e.message);
+        onStatus?.({ step: 'enrich-maps', status: 'failed', message: 'Map data failed (continuing)' });
       }
     }
     
     // Enrich sessions with VSR map data if opt-in enabled
     if (enrichVsrMaps) {
+      onStatus?.({ step: 'enrich-vsr', status: 'pending', message: 'Loading VSR map data...' });
       const vsrLookup = vsrMapData 
         ? buildVsrMapLookup(vsrMapData, vsrMapDataMode)
         : VSR_MAP_DATA;
       enrichSessionsWithVsrData(sessions, vsrLookup);
+      onStatus?.({ step: 'enrich-vsr', status: 'success', message: 'VSR data loaded' });
     }
     
     const dataCache = buildDataCache(sessions);
+    
+    onStatus?.({ step: 'complete', status: 'success', message: `Loaded ${sessions.length} session${sessions.length !== 1 ? 's' : ''}` });
     
     return {
       sessions,
