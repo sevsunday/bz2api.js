@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BZ2 Lobby Finder</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d0f12;
+      color: #c9d1d9;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 32px 24px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #e6edf3;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: #6e7681;
+      font-size: 0.85rem;
+      margin-bottom: 28px;
+    }
+
+    #status {
+      color: #8b949e;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      min-height: 1.4em;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 2px solid #30363d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #result { display: none; }
+
+    .session-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+
+    .session-card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e6edf3;
+      margin-bottom: 10px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px 24px;
+    }
+
+    .meta-item { display: flex; flex-direction: column; gap: 1px; }
+
+    .meta-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6e7681;
+    }
+
+    .meta-value {
+      color: #c9d1d9;
+      font-size: 0.88rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-vsr   { background: #1a3a5c; color: #58a6ff; border: 1px solid #1f6feb; }
+    .badge-match { background: #0d2a1a; color: #3fb950; border: 1px solid #238636; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid #30363d;
+      color: #8b949e;
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #21262d;
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #1c2128; }
+
+    tbody tr.is-party {
+      background: #0d1f17;
+    }
+
+    tbody tr.is-party:hover { background: #122518; }
+
+    td {
+      padding: 8px 12px;
+      vertical-align: middle;
+    }
+
+    .player-name {
+      color: #e6edf3;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .party-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #3fb950;
+      flex-shrink: 0;
+    }
+
+    .party-name {
+      font-size: 0.75rem;
+      color: #3fb950;
+      margin-left: 2px;
+    }
+
+    .steam-link {
+      color: #58a6ff;
+      text-decoration: none;
+      font-family: 'Consolas', monospace;
+      font-size: 0.8rem;
+    }
+
+    .steam-link:hover { text-decoration: underline; }
+
+    .platform-steam { color: #8b949e; }
+    .platform-gog   { color: #a371f7; }
+
+    .team-1 { color: #58a6ff; }
+    .team-2 { color: #f78166; }
+    .team-none { color: #6e7681; }
+
+    .tag-host, .tag-cmd {
+      font-size: 0.68rem;
+      padding: 0 5px;
+      border-radius: 3px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .tag-host { background: #272e38; color: #d29922; border: 1px solid #4d3000; }
+    .tag-cmd  { background: #1a2a3a; color: #58a6ff; border: 1px solid #1f4068; }
+
+    #no-match {
+      display: none;
+      color: #8b949e;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    #error-msg {
+      display: none;
+      color: #f85149;
+      background: #1c0a0a;
+      border: 1px solid #6e1a1a;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 0.85rem;
+    }
+
+    .section-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6e7681;
+      margin-bottom: 10px;
+    }
+
+    .party-legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+
+  <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px">
+    <h1>BZ2 Lobby Finder</h1>
+    <button onclick="run()" style="padding:4px 12px;background:#161b22;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:0.8rem">Refresh</button>
+    <button onclick="location.href='index-mini.html'" style="padding:4px 12px;background:#161b22;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:0.8rem">Mini version</button>
+  </div>
+  <p class="subtitle">Finds the VSR session with the most party members online, and lists the entire lobby.</p>
+
+  <div id="status"><span class="spinner"></span>Fetching sessions&hellip;</div>
+  <div id="error-msg"></div>
+
+  <div id="result">
+    <div class="session-card">
+      <h2 id="session-name"></h2>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Map</span>
+          <span class="meta-value" id="session-map"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">State</span>
+          <span class="meta-value" id="session-state"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Players</span>
+          <span class="meta-value" id="session-players"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Party Members Found</span>
+          <span class="meta-value" id="session-matches"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Mode</span>
+          <span class="meta-value" id="session-mode"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Balance</span>
+          <span class="meta-value"><span class="badge badge-vsr">VSR</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="party-legend" id="party-legend"></div>
+
+    <p class="section-title">All Players in Session</p>
+
+    <div class="session-card" style="padding: 0; overflow: hidden;">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Steam ID</th>
+            <th>Platform</th>
+            <th>Team</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody id="player-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="no-match">
+    No VSR sessions with matching party members were found. Try refreshing.
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/gh/sevsunday/bz2api.js@1.0.0/bz2api.min.js"></script>
+  <script>
+    const PARTY_MEMBERS = {
+      "76561198877763773": "MAX",
+      "76561198088149233": "Muffin",
+      "76561199732480793": "XPi",
+      "76561198820311491": "m.s",
+      "76561199653748651": "Sev",
+      "76561198006115793": "Domakus",
+      "76561198846500539": "Xohm",
+      "76561198824607769": "Cyber",
+      "herpmcderperson": "Herp",
+      "76561198043392032": "blue_banana",
+      "76561198076339639": "Sly",
+      "76561197974548434": "VTrider",
+      "76561198068133931": "Econchump",
+      "76561198825004088": "Lamper",
+      "76561198026325621": "F9Bomber",
+      "76561197970538803": "Graves"
+    };
+
+
+    const statusEl      = document.getElementById('status');
+    const resultEl      = document.getElementById('result');
+    const noMatchEl     = document.getElementById('no-match');
+    const errorMsgEl    = document.getElementById('error-msg');
+    const playerTbody   = document.getElementById('player-table-body');
+    const partyLegendEl = document.getElementById('party-legend');
+
+    function setStatus(msg) {
+      statusEl.innerHTML = msg
+        ? `<span class="spinner"></span>${msg}`
+        : '';
+    }
+
+    function showError(msg) {
+      statusEl.innerHTML = '';
+      errorMsgEl.style.display = 'block';
+      errorMsgEl.textContent = `Error: ${msg}`;
+    }
+
+    function teamLabel(team) {
+      if (team === 1) return '<span class="team-1">Team 1</span>';
+      if (team === 2) return '<span class="team-2">Team 2</span>';
+      return '<span class="team-none">—</span>';
+    }
+
+    async function run() {
+      resultEl.style.display = 'none';
+      noMatchEl.style.display = 'none';
+      errorMsgEl.style.display = 'none';
+      setStatus('Fetching sessions\u2026');
+      try {
+        const result = await BZ2API.fetchSessions({
+          onStatus: (s) => setStatus(s)
+        });
+
+        setStatus('');
+
+        const vsrSessions = result.sessions.filter(s => s.gameBalance === 'VSR');
+
+        if (vsrSessions.length === 0) {
+          noMatchEl.style.display = 'block';
+          noMatchEl.textContent = 'No VSR sessions are currently active.';
+          return;
+        }
+
+        // Score each VSR session by number of party members present
+        let best = null;
+        let bestScore = -1;
+
+        for (const session of vsrSessions) {
+          let score = 0;
+          for (const player of session.players) {
+            if (player.steamId && PARTY_MEMBERS[player.steamId]) score++;
+          }
+          if (score > bestScore) {
+            bestScore = score;
+            best = session;
+          }
+        }
+
+        if (!best) {
+          noMatchEl.style.display = 'block';
+          return;
+        }
+
+        // Populate session metadata
+        document.getElementById('session-name').textContent  = best.name || '(unnamed)';
+        document.getElementById('session-map').textContent   = best.mapFile || '—';
+        document.getElementById('session-state').textContent = best.stateDetail || best.state || '—';
+        document.getElementById('session-players').textContent =
+          `${best.playerCount} / ${best.maxPlayers}`;
+        document.getElementById('session-matches').innerHTML =
+          `<span class="badge badge-match">${bestScore} / ${Object.keys(PARTY_MEMBERS).length}</span>`;
+        document.getElementById('session-mode').textContent  = best.gameMode || '—';
+
+        // Party legend
+        const foundIds = new Set(
+          best.players
+            .filter(p => p.steamId && PARTY_MEMBERS[p.steamId])
+            .map(p => p.steamId)
+        );
+
+        partyLegendEl.innerHTML = Object.entries(PARTY_MEMBERS).map(([id, name]) => {
+          const present = foundIds.has(id);
+          return `<div class="legend-item">
+            <span style="width:8px;height:8px;border-radius:50%;background:${present ? '#3fb950' : '#6e7681'};display:inline-block;flex-shrink:0;"></span>
+            <span style="color:${present ? '#c9d1d9' : '#6e7681'}">${name}</span>
+          </div>`;
+        }).join('');
+
+        // Build player table
+        playerTbody.innerHTML = best.players.map(player => {
+          const isParty = !!(player.steamId && PARTY_MEMBERS[player.steamId]);
+          const partyName = isParty ? PARTY_MEMBERS[player.steamId] : null;
+
+          const nameCell = `<div class="player-name">
+            ${isParty ? '<span class="party-dot"></span>' : ''}
+            <span>${escHtml(player.name)}</span>
+            ${partyName ? `<span class="party-name">(${escHtml(partyName)})</span>` : ''}
+          </div>`;
+
+          const steamCell = player.steamId
+            ? `<a class="steam-link" href="${escHtml(player.profileUrl || '#')}" target="_blank" rel="noopener">
+                ${escHtml(player.steamId)}
+               </a>`
+            : (player.gogId
+                ? `<span style="color:#a371f7;font-family:monospace;font-size:0.8rem">${escHtml(player.gogId)}</span>`
+                : '<span style="color:#6e7681">—</span>');
+
+          const platformCell = player.platform === 'Steam'
+            ? '<span class="platform-steam">Steam</span>'
+            : '<span class="platform-gog">GOG</span>';
+
+          const roles = [];
+          if (player.isHost)       roles.push('<span class="tag-host">HOST</span>');
+          if (player.isCommander)  roles.push('<span class="tag-cmd">CMD</span>');
+
+          return `<tr class="${isParty ? 'is-party' : ''}">
+            <td>${nameCell}</td>
+            <td>${steamCell}</td>
+            <td>${platformCell}</td>
+            <td>${teamLabel(player.team)}</td>
+            <td style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">${roles.join('') || '<span style="color:#6e7681">—</span>'}</td>
+          </tr>`;
+        }).join('');
+
+        resultEl.style.display = 'block';
+
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    run();
+  </script>
+</body>
+</html>

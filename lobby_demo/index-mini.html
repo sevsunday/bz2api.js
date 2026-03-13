@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#111;color:#ccc;font-family:sans-serif;padding:20px">
+<div id="out">Loading...</div>
+<button onclick="run()" style="margin-top:12px;padding:5px 14px;background:#222;color:#ccc;border:1px solid #444;border-radius:4px;cursor:pointer">Refresh</button>
+<button onclick="location.href='index.html'" style="margin-top:12px;padding:5px 14px;background:#222;color:#ccc;border:1px solid #444;border-radius:4px;cursor:pointer">Full version</button>
+<script src="https://cdn.jsdelivr.net/gh/sevsunday/bz2api.js@1.0.0/bz2api.min.js"></script>
+<script>
+    const PARTY = {
+      "76561198877763773": "MAX",
+      "76561198088149233": "Muffin",
+      "76561199732480793": "XPi",
+      "76561198820311491": "m.s",
+      "76561199653748651": "Sev",
+      "76561198006115793": "Domakus",
+      "76561198846500539": "Xohm",
+      "76561198824607769": "Cyber",
+      "herpmcderperson": "Herp",
+      "76561198043392032": "blue_banana",
+      "76561198076339639": "Sly",
+      "76561197974548434": "VTrider",
+      "76561198068133931": "Econchump",
+      "76561198825004088": "Lamper",
+      "76561198026325621": "F9Bomber",
+      "76561197970538803": "Graves"
+};
+const out = document.getElementById('out');
+async function run() {
+  out.textContent = 'Loading...';
+  try {
+    const { sessions } = await BZ2API.fetchSessions();
+    let best, bestScore = -1;
+    for (const s of sessions.filter(s => s.gameBalance === 'VSR')) {
+      const score = s.players.filter(p => PARTY[p.steamId]).length;
+      if (score > bestScore) { best = s; bestScore = score; }
+    }
+    if (!best) { out.textContent = 'No VSR sessions found.'; return; }
+    out.innerHTML = `<b>${best.name}</b> — ${best.mapFile} (${best.playerCount}/${best.maxPlayers})<br><br>`
+      + best.players.map(p => {
+          const inParty = PARTY[p.steamId];
+          const id = p.steamId || p.gogId || '';
+          return `<span style="${inParty ? 'color:#4f4' : ''}">${inParty ? '★ ' : ''}${p.name}${id ? ` <span style="opacity:.5;font-size:.85em">${id}</span>` : ''}</span>`;
+        }).join('<br>');
+  } catch(e) { out.textContent = 'Error: ' + e.message; }
+}
+run();
+</script>
+</body>
+</html>
